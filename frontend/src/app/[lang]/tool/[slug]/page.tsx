@@ -8,21 +8,26 @@ import Link from 'next/link';
 import StarRating from '@/components/StarRating';
 import ReviewsSection from '@/components/ReviewsSection';
 
-// Типы для параметров страницы
-type Props = {
+type PageProps = {
   params: {
-    slug: string;
     lang: string;
+    slug: string;
   };
 };
 
-// --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
-async function getToolBySlug(slug: string, lang:string): Promise<ITool | null> {
+const PRICING_INFO = {
+  free: { text: 'Free', className: 'bg-green-600/20 text-green-300' },
+  freemium: { text: 'Freemium', className: 'bg-yellow-600/20 text-yellow-300' },
+  paid: { text: 'Paid', className: 'bg-red-600/20 text-red-300' },
+  trial: { text: 'Free Trial', className: 'bg-purple-600/20 text-purple-300' },
+};
+
+// 🔄 Получение одного инструмента
+async function getToolBySlug(slug: string, lang: string): Promise<ITool | null> {
   const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tools/${slug}`;
   try {
     const res = await fetch(apiUrl, {
       headers: { 'Accept-Language': lang },
-      // Отключаем кэширование для этой страницы, чтобы всегда получать свежие данные
       cache: 'no-store',
     });
     if (!res.ok) return null;
@@ -33,8 +38,8 @@ async function getToolBySlug(slug: string, lang:string): Promise<ITool | null> {
   }
 }
 
-// Генерация метаданных для SEO
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+// 🔎 Генерация SEO-метаданных
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang, slug } = params;
   const tool = await getToolBySlug(slug, lang);
 
@@ -62,17 +67,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-
-const PRICING_INFO = {
-    free: { text: 'Free', className: 'bg-green-600/20 text-green-300' },
-    freemium: { text: 'Freemium', className: 'bg-yellow-600/20 text-yellow-300' },
-    paid: { text: 'Paid', className: 'bg-red-600/20 text-red-300' },
-    trial: { text: 'Free Trial', className: 'bg-purple-600/20 text-purple-300' },
-};
-
-
-// --- Основной компонент страницы ---
-export default async function ToolDetailPage({ params }: Props) {
+// 🧠 Основной компонент страницы
+export default async function ToolDetailPage({ params }: PageProps) {
   const { slug, lang } = params;
   const tool = await getToolBySlug(slug, lang);
 
@@ -87,13 +83,20 @@ export default async function ToolDetailPage({ params }: Props) {
   return (
     <div className="max-w-4xl mx-auto py-12 px-4">
       <div className="grid md:grid-cols-3 gap-8 md:gap-12">
-
         <aside className="md:col-span-1 flex flex-col items-center md:items-start">
           <div className="relative w-32 h-32 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden mb-6">
             {tool.icon_url ? (
-              <Image src={tool.icon_url} alt={`${tool.name} logo`} fill sizes="128px" className="object-contain p-2"/>
+              <Image
+                src={tool.icon_url}
+                alt={`${tool.name} logo`}
+                fill
+                sizes="128px"
+                className="object-contain p-2"
+              />
             ) : (
-              <span className="text-4xl font-bold text-slate-500">{tool.name.charAt(0)}</span>
+              <span className="text-4xl font-bold text-slate-500">
+                {tool.name.charAt(0)}
+              </span>
             )}
           </div>
           <a
@@ -108,7 +111,10 @@ export default async function ToolDetailPage({ params }: Props) {
 
         <article className="md:col-span-2">
           {tool.category && (
-             <Link href={`/${lang}/tool?category_id=${tool.category.id}`} className="text-blue-400 font-semibold text-sm hover:underline">
+            <Link
+              href={`/${lang}/tool?category_id=${tool.category.id}`}
+              className="text-blue-400 font-semibold text-sm hover:underline"
+            >
               {tool.category.name}
             </Link>
           )}
@@ -118,7 +124,11 @@ export default async function ToolDetailPage({ params }: Props) {
           </h1>
 
           <div className="flex items-center gap-3 mt-2 text-slate-400">
-            <StarRating initialRating={tool.average_rating} isInteractive={false} size="sm" />
+            <StarRating
+              initialRating={tool.average_rating}
+              isInteractive={false}
+              size="sm"
+            />
             <div className="flex items-baseline gap-1.5">
               <span className="font-bold text-white">{tool.average_rating.toFixed(1)}</span>
               <span>/</span>
@@ -129,15 +139,21 @@ export default async function ToolDetailPage({ params }: Props) {
 
           <div className="flex flex-wrap items-center gap-2 mt-4">
             {pricingInfo && (
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pricingInfo.className}`}>
-                    {pricingInfo.text}
-                </span>
+              <span
+                className={`text-xs font-medium px-2.5 py-1 rounded-full ${pricingInfo.className}`}
+              >
+                {pricingInfo.text}
+              </span>
             )}
-            {tool.platforms && tool.platforms.map(platform => (
-                <span key={platform} className="bg-slate-700 text-slate-300 text-xs font-medium px-2.5 py-1 rounded-full">
-                    {platform}
+            {tool.platforms &&
+              tool.platforms.map((platform) => (
+                <span
+                  key={platform}
+                  className="bg-slate-700 text-slate-300 text-xs font-medium px-2.5 py-1 rounded-full"
+                >
+                  {platform}
                 </span>
-            ))}
+              ))}
           </div>
 
           <div className="prose prose-lg prose-invert text-slate-300 mt-6">
