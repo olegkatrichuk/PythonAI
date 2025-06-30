@@ -1,0 +1,767 @@
+[
+  {
+    "name": "ChatGPT",
+    "url": "https://chat.openai.com/",
+    "description": "Продвинутая языковая модель от OpenAI для диалогов, написания текстов и многого другого.",
+    "tags": ["Text Generation", "LLM"],
+    "is_featured": true,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "iOS", "Android", "API"]
+  },
+  {
+    "name": "Midjourney",
+    "url": "https://www.midjourney.com/",
+    "description": "Одна из самых популярных и качественных нейросетей для генерации изображений по текстовому описанию.",
+    "tags": ["Image Generation", "Art"],
+    "is_featured": true,
+    "pricing_model": "paid",
+    "platforms": ["Web", "API"]
+  },
+  {
+    "name": "GitHub Copilot",
+    "url": "https://github.com/features/copilot",
+    "description": "AI-помощник для программистов, который предлагает автодополнение кода прямо в редакторе.",
+    "tags": ["Code Assistant", "Developer"],
+    "is_featured": true,
+    "pricing_model": "trial",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Google Gemini",
+    "url": "https://gemini.google.com/",
+    "description": "Мультимодальная модель от Google, способная работать с текстом, кодом и изображениями.",
+    "tags": ["Text Generation", "LLM"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "API"]
+  },
+  {
+    "name": "Stable Diffusion",
+    "url": "https://stability.ai/stablediffusion",
+    "description": "Открытая модель для генерации фотореалистичных изображений, требующая установки или использования через API.",
+    "tags": ["Image Generation", "Open Source"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["Windows", "macOS", "API"]
+  },
+  {
+    "name": "Suno AI",
+    "url": "https://www.suno.ai/",
+    "description": "Генерация полноценных песен с вокалом и музыкой по текстовому запросу.",
+    "tags": ["Audio", "Music"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "ElevenLabs",
+    "url": "https://elevenlabs.io/",
+    "description": "Сервис для генерации и клонирования голоса с высокой степенью реалистичности.",
+    "tags": ["Audio", "Voice", "Speech"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "API"]
+  },
+  {
+    "name": "Notion AI",
+    "url": "https://www.notion.so/product/ai",
+    "description": "ИИ-помощник, встроенный в рабочее пространство Notion. Помогает суммировать, писать и редактировать.",
+    "tags": ["Productivity", "Writing"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "Windows", "macOS", "iOS", "Android"]
+  },
+  {
+    "name": "v0 by Vercel",
+    "url": "https://v0.dev/",
+    "description": "Генерация React-компонентов на основе вашего текстового описания с использованием Tailwind CSS.",
+    "tags": ["Code Assistant", "UI", "Design"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "RunwayML Gen-2",
+    "url": "https://runwayml.com/",
+    "description": "Платформа для генерации и редактирования видео с помощью искусственного интеллекта.",
+    "tags": ["Video", "Editing"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "iOS"]
+  },
+  {
+    "name": "Poe by Quora",
+    "url": "https://poe.com/",
+    "description": "Платформа, предоставляющая доступ к множеству различных языковых моделей, включая Claude и GPT-4.",
+    "tags": ["Text Generation", "LLM"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "macOS", "iOS", "Android"]
+  },
+  {
+    "name": "Leonardo.Ai",
+    "url": "https://leonardo.ai/",
+    "description": "Платформа для создания высококачественных игровых ассетов и концепт-арта с помощью ИИ.",
+    "tags": ["Image Generation", "Art", "Design"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "iOS"]
+  },
+  {
+    "name": "DALL-E 3",
+    "url": "https://openai.com/dall-e-3",
+    "description": "Модель генерации изображений от OpenAI, интегрированная в ChatGPT Plus, с отличным пониманием запросов.",
+    "tags": ["Image Generation"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Web", "API"]
+  },
+  {
+    "name": "Perplexity AI",
+    "url": "https://www.perplexity.ai/",
+    "description": "Поисковая система в формате чат-бота, которая предоставляет ответы со ссылками на источники.",
+    "tags": ["Text Generation", "Productivity"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "iOS", "Android"]
+  },
+  {
+    "name": "Synthesia",
+    "url": "https://www.synthesia.io/",
+    "description": "Создание видео с AI-аватарами, которые говорят ваш текст на разных языках.",
+    "tags": ["Video", "Avatars"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Descript",
+    "url": "https://www.descript.com/",
+    "description": "Редактор аудио и видео, который работает как текстовый документ. Позволяет редактировать запись, изменяя текст.",
+    "tags": ["Audio", "Video", "Editing"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "Windows", "macOS"]
+  },
+  {
+    "name": "Grammarly",
+    "url": "https://www.grammarly.com/",
+    "description": "Интеллектуальный помощник для проверки грамматики, стиля и тональности текста.",
+    "tags": ["Text Generation", "Writing"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "Windows", "macOS", "iOS", "Android"]
+  },
+  {
+    "name": "Copy.ai",
+    "url": "https://www.copy.ai/",
+    "description": "Платформа для генерации маркетинговых текстов, постов для соцсетей, описаний продуктов и многого другого.",
+    "tags": ["Text Generation", "Copywriting", "Marketing"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Llama 3",
+    "url": "https://llama.meta.com/",
+    "description": "Семейство открытых языковых моделей от Meta, доступных для коммерческого использования.",
+    "tags": ["Text Generation", "LLM", "Open Source"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["API"]
+  },
+  {
+    "name": "Adobe Firefly",
+    "url": "https://www.adobe.com/sensei/generative-ai/firefly.html",
+    "description": "Семейство генеративных моделей от Adobe, интегрированных в Photoshop и другие продукты Creative Cloud.",
+    "tags": ["Image Generation", "Design"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "Windows", "macOS"]
+  },
+  {
+    "name": "Krita",
+    "url": "https://krita.org/",
+    "description": "Бесплатный и открытый редактор растровой графики с поддержкой AI-плагинов для генерации изображений.",
+    "tags": ["Image Generation", "Art", "Open Source"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["Windows", "macOS", "Linux"]
+  },
+  {
+    "name": "Replit AI",
+    "url": "https://replit.com/ai",
+    "description": "Облачная среда разработки с мощным AI-помощником для написания, отладки и развертывания кода.",
+    "tags": ["Code Assistant"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "HeyGen",
+    "url": "https://www.heygen.com/",
+    "description": "Платформа для создания видео с говорящими аватарами и автоматическим переводом видео.",
+    "tags": ["Video", "Avatars"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Tome",
+    "url": "https://tome.app/",
+    "description": "AI-помощник для создания профессиональных презентаций и сторителлинга.",
+    "tags": ["Productivity", "Business"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Murf.ai",
+    "url": "https://murf.ai/",
+    "description": "Создание студийного качества озвучки для видео и презентаций с помощью AI-голосов.",
+    "tags": ["Audio", "Voice"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Spline",
+    "url": "https://spline.design/",
+    "description": "3D-редактор, работающий в браузере, с AI-функциями для генерации текстур и моделей.",
+    "tags": ["Design & 3D"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "Windows", "macOS"]
+  },
+  {
+    "name": "Looka",
+    "url": "https://looka.com/",
+    "description": "AI-генератор логотипов и фирменного стиля для вашего бизнеса.",
+    "tags": ["Image Generation", "Design", "Logo"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Jasper",
+    "url": "https://www.jasper.ai/",
+    "description": "Продвинутый AI-копирайтер для создания длинных статей, постов в блог и маркетинговых материалов.",
+    "tags": ["Text Generation", "Copywriting"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Character.AI",
+    "url": "https://character.ai/",
+    "description": "Платформа для создания и общения с чат-ботами, имитирующими различных персонажей.",
+    "tags": ["Text Generation"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["Web", "iOS", "Android"]
+  },
+  {
+    "name": "Otter.ai",
+    "url": "https://otter.ai/",
+    "description": "Автоматическая транскрипция аудио- и видео-встреч в реальном времени с выделением спикеров.",
+    "tags": ["Productivity", "Audio", "Speech"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "iOS", "Android"]
+  },
+  {
+    "name": "DeepL",
+    "url": "https://www.deepl.com/translator",
+    "description": "Один из самых точных онлайн-переводчиков, использующий нейронные сети для естественного перевода.",
+    "tags": ["Text Generation", "Writing"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "API", "Windows", "macOS"]
+  },
+  {
+    "name": "Codeium",
+    "url": "https://codeium.com/",
+    "description": "Бесплатная альтернатива GitHub Copilot, поддерживающая множество языков и IDE.",
+    "tags": ["Code Assistant"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Uizard",
+    "url": "https://uizard.io/",
+    "description": "AI-инструмент для быстрого прототипирования и создания дизайна интерфейсов из набросков или текста.",
+    "tags": ["Design & 3D", "UI", "UX"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Civitai",
+    "url": "https://civitai.com/",
+    "description": "Огромная библиотека пользовательских моделей и LoRA для Stable Diffusion.",
+    "tags": ["Image Generation"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Hugging Face",
+    "url": "https://huggingface.co/",
+    "description": "Платформа для разработчиков, предоставляющая доступ к тысячам моделей и наборов данных для машинного обучения.",
+    "tags": ["Code Assistant", "LLM", "Open Source"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "API"]
+  },
+  {
+    "name": "Rask.ai",
+    "url": "https://www.rask.ai/",
+    "description": "Автоматический перевод и дубляж видео на более чем 130 языков с сохранением голоса.",
+    "tags": ["Video", "Audio", "Voice"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Gradio",
+    "url": "https://www.gradio.app/",
+    "description": "Библиотека для быстрого создания веб-интерфейсов для ваших моделей машинного обучения.",
+    "tags": ["Code Assistant", "UI"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["API"]
+  },
+  {
+    "name": "Fireflies.ai",
+    "url": "https://fireflies.ai/",
+    "description": "AI-ассистент для встреч, который записывает, транскрибирует и анализирует ваши разговоры.",
+    "tags": ["Productivity", "Business", "Audio"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Figma",
+    "url": "https://www.figma.com/",
+    "description": "Ведущий инструмент для дизайна интерфейсов, который активно интегрирует AI-функции для автоматизации рутины.",
+    "tags": ["Design & 3D", "UI", "UX"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "Windows", "macOS"]
+  },
+  {
+    "name": "Claude",
+    "url": "https://claude.ai/",
+    "description": "Языковая модель от Anthropic, известная своим большим контекстным окном и фокусом на безопасности.",
+    "tags": ["Text Generation", "LLM"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "API"]
+  },
+  {
+    "name": "Beautiful.ai",
+    "url": "https://www.beautiful.ai/",
+    "description": "AI-конструктор презентаций, который автоматически форматирует слайды, пока вы добавляете контент.",
+    "tags": ["Productivity", "Design", "Business"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Artbreeder",
+    "url": "https://www.artbreeder.com/",
+    "description": "Платформа для 'скрещивания' изображений и создания уникальных портретов, пейзажей и персонажей.",
+    "tags": ["Image Generation", "Art"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Writesonic",
+    "url": "https://writesonic.com/",
+    "description": "AI-писатель для создания SEO-оптимизированного контента, постов для блогов и рекламы.",
+    "tags": ["Text Generation", "Copywriting"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Playground AI",
+    "url": "https://playgroundai.com/",
+    "description": "Бесплатный онлайн-редактор изображений с мощными функциями AI-генерации и редактирования.",
+    "tags": ["Image Generation"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Adobe Podcast",
+    "url": "https://podcast.adobe.com/enhance",
+    "description": "Бесплатный инструмент для очистки и улучшения качества записи голоса до студийного уровня.",
+    "tags": ["Audio", "Voice"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "ClickUp",
+    "url": "https://clickup.com/",
+    "description": "Менеджер задач и проектов, который использует AI для автоматизации, суммирования и планирования.",
+    "tags": ["Productivity", "Business"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "Windows", "macOS", "iOS", "Android"]
+  },
+  {
+    "name": "Pika",
+    "url": "https://pika.art/",
+    "description": "Генератор видео из текста и изображений с широкими возможностями по стилизации.",
+    "tags": ["Video"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Cursor",
+    "url": "https://cursor.sh/",
+    "description": "Редактор кода, созданный специально для работы с AI, с глубокой интеграцией чата и автодополнения.",
+    "tags": ["Code Assistant"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Windows", "macOS", "Linux"]
+  },
+  {
+    "name": "Ideogram",
+    "url": "https://ideogram.ai/",
+    "description": "AI-генератор изображений, который особенно хорошо справляется с добавлением читаемого текста на картинки.",
+    "tags": ["Image Generation", "Logo"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Gamma",
+    "url": "https://gamma.app/",
+    "description": "Новый способ создания презентаций, документов и веб-страниц с помощью AI.",
+    "tags": ["Productivity", "Design"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Kore.ai",
+    "url": "https://kore.ai/",
+    "description": "Платформа для создания продвинутых чат-ботов и голосовых ассистентов для бизнеса.",
+    "tags": ["Business & Analytics"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Web", "API"]
+  },
+  {
+    "name": "TensorArt",
+    "url": "https://tensor.art/",
+    "description": "Бесплатный онлайн-генератор изображений на основе Stable Diffusion с доступом к сотням моделей.",
+    "tags": ["Image Generation"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Supernormal",
+    "url": "https://supernormal.com/",
+    "description": "AI-ассистент, который автоматически делает заметки во время ваших онлайн-встреч в Google Meet, Zoom и Teams.",
+    "tags": ["Productivity", "Business"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Luma AI",
+    "url": "https://lumalabs.ai/",
+    "description": "Создание 3D-моделей и сцен из видео, снятого на телефон, а также генерация видео.",
+    "tags": ["Design & 3D", "Video"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "iOS"]
+  },
+  {
+    "name": "You.com",
+    "url": "https://you.com/",
+    "description": "AI-поисковик, который позволяет вам выбирать режим работы: умный поиск, чат или генерация.",
+    "tags": ["Text Generation", "Productivity"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "iOS", "Android"]
+  },
+  {
+    "name": "Phind",
+    "url": "https://www.phind.com/",
+    "description": "Поисковая система, созданная специально для разработчиков, которая дает ответы с примерами кода.",
+    "tags": ["Code Assistant"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Rytr",
+    "url": "https://rytr.me/",
+    "description": "Быстрый и доступный AI-помощник для написания текстов любого формата.",
+    "tags": ["Text Generation", "Copywriting"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Khroma",
+    "url": "https://www.khroma.co/",
+    "description": "AI-инструмент для дизайнеров, который генерирует бесконечные цветовые палитры на основе ваших предпочтений.",
+    "tags": ["Design & 3D", "Color"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "NVIDIA Canvas",
+    "url": "https://www.nvidia.com/en-us/studio/canvas/",
+    "description": "Приложение, которое превращает простые мазки кистью в фотореалистичные пейзажи.",
+    "tags": ["Image Generation", "Art"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["Windows"]
+  },
+  {
+    "name": "Motion Array",
+    "url": "https://motionarray.com/",
+    "description": "Огромная библиотека видео-шаблонов, музыки и пресетов, активно использующая AI для поиска и рекомендаций.",
+    "tags": ["Video", "Audio"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Decktopus",
+    "url": "https://www.decktopus.com/",
+    "description": "AI-генератор презентаций, который фокусируется на быстром создании профессиональных и красивых слайдов.",
+    "tags": ["Productivity", "Business"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "D-ID",
+    "url": "https://www.d-id.com/",
+    "description": "Платформа для 'оживления' портретных фотографий, заставляя их говорить и двигаться.",
+    "tags": ["Video", "Avatars"],
+    "is_featured": false,
+    "pricing_model": "trial",
+    "platforms": ["Web", "API"]
+  },
+  {
+    "name": "Blackbox AI",
+    "url": "https://www.blackbox.ai/",
+    "description": "AI-помощник для кода, который может отвечать на вопросы, писать код и объяснять его.",
+    "tags": ["Code Assistant"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Clipchamp",
+    "url": "https://clipchamp.com/",
+    "description": "Онлайн-видеоредактор от Microsoft с AI-функциями, такими как автоматическое создание видео.",
+    "tags": ["Video", "Editing"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "Windows"]
+  },
+  {
+    "name": "Taskade",
+    "url": "https://www.taskade.com/",
+    "description": "AI-ассистент для командной работы, который помогает структурировать задачи, генерировать идеи и создавать рабочие процессы.",
+    "tags": ["Productivity"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "Windows", "macOS", "iOS", "Android"]
+  },
+  {
+    "name": "Scribble Diffusion",
+    "url": "https://scribblediffusion.com/",
+    "description": "Простой веб-инструмент, который превращает ваши наброски в детализированные изображения.",
+    "tags": ["Image Generation", "Art"],
+    "is_featured": false,
+    "pricing_model": "free",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "QuillBot",
+    "url": "https://quillbot.com/",
+    "description": "Инструмент для перефразирования текста, проверки грамматики и суммирования.",
+    "tags": ["Text Generation", "Writing"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Poly AI",
+    "url": "https://poly.ai/",
+    "description": "Платформа для создания реалистичных голосовых ассистентов для колл-центров и поддержки клиентов.",
+    "tags": ["Business & Analytics", "Audio"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["API"]
+  },
+  {
+    "name": "Kaiber",
+    "url": "https://kaiber.ai/",
+    "description": "Генератор видео, который создает анимированные ролики из ваших изображений или текстовых описаний.",
+    "tags": ["Video"],
+    "is_featured": false,
+    "pricing_model": "trial",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Topaz Labs",
+    "url": "https://www.topazlabs.com/",
+    "description": "Набор программ для улучшения качества фото и видео: увеличение, удаление шума и повышение резкости.",
+    "tags": ["Image Generation", "Video", "Photo"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Windows", "macOS"]
+  },
+  {
+    "name": "Mixo",
+    "url": "https://www.mixo.io/",
+    "description": "AI-конструктор, который создает полноценный сайт-визитку за несколько секунд по вашему описанию.",
+    "tags": ["Business & Analytics", "Design"],
+    "is_featured": false,
+    "pricing_model": "trial",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "DeepMotion",
+    "url": "https://www.deepmotion.com/",
+    "description": "Сервис для создания 3D-анимации из обычного видео, захватывая движения людей.",
+    "tags": ["Design & 3D", "Video"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "API"]
+  },
+  {
+    "name": "Galileo AI",
+    "url": "https://www.usegalileo.ai/",
+    "description": "Создание дизайна интерфейсов для приложений по текстовому описанию, с возможностью экспорта в Figma.",
+    "tags": ["Design & 3D", "UI", "UX"],
+    "is_featured": false,
+    "pricing_model": "trial",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Magic Eraser",
+    "url": "https://www.magiceraser.io/",
+    "description": "Простой инструмент для удаления нежелательных объектов с фотографий.",
+    "tags": ["Image Generation", "Photo"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web", "iOS"]
+  },
+  {
+    "name": "AssemblyAI",
+    "url": "https://www.assemblyai.com/",
+    "description": "API для распознавания речи, суммирования аудио и анализа тональности разговора.",
+    "tags": ["Audio", "Speech", "API"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["API"]
+  },
+  {
+    "name": "Mem",
+    "url": "https://get.mem.ai/",
+    "description": "Умная база знаний, которая автоматически организует ваши заметки и находит связи между ними.",
+    "tags": ["Productivity"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Web", "macOS", "iOS"]
+  },
+  {
+    "name": "Vidyo.ai",
+    "url": "https://vidyo.ai/",
+    "description": "Автоматически нарезает длинные видео (подкасты, вебинары) на короткие вирусные ролики для соцсетей.",
+    "tags": ["Video", "Editing", "Marketing"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Cohesive",
+    "url": "https://cohesive.so/",
+    "description": "Мощный редактор текстов, который объединяет генерацию, редактирование и перевод в одном интерфейсе.",
+    "tags": ["Text Generation", "Writing"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Let's Enhance",
+    "url": "https://letsenhance.io/",
+    "description": "Увеличение разрешения изображений без потери качества с помощью AI.",
+    "tags": ["Image Generation", "Photo"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Tabnine",
+    "url": "https://www.tabnine.com/",
+    "description": "AI-помощник для разработчиков, который изучает ваш стиль кодирования и предлагает персонализированные автодополнения.",
+    "tags": ["Code Assistant"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "HitPaw",
+    "url": "https://www.hitpaw.com/",
+    "description": "Набор инструментов для редактирования фото и видео, включая улучшение качества, удаление водяных знаков и др.",
+    "tags": ["Image Generation", "Video"],
+    "is_featured": false,
+    "pricing_model": "paid",
+    "platforms": ["Windows", "macOS"]
+  },
+  {
+    "name": "VEED.IO",
+    "url": "https://www.veed.io/",
+    "description": "Простой онлайн видеоредактор с множеством AI-функций, таких как автоматические субтитры и удаление фона.",
+    "tags": ["Video", "Editing"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Framer AI",
+    "url": "https://www.framer.com/ai",
+    "description": "Конструктор сайтов, который позволяет генерировать и изменять дизайн с помощью текстовых запросов.",
+    "tags": ["Design & 3D", "Website"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "Durable",
+    "url": "https://durable.co/",
+    "description": "AI-конструктор, который создает сайт с текстом, изображениями и контактной формой за 30 секунд.",
+    "tags": ["Business & Analytics", "Website"],
+    "is_featured": false,
+    "pricing_model": "trial",
+    "platforms": ["Web"]
+  },
+  {
+    "name": "InVideo",
+    "url": "https://invideo.io/",
+    "description": "Онлайн-редактор для создания видео из текста, который подбирает подходящие видео-футажи и музыку.",
+    "tags": ["Video", "Editing"],
+    "is_featured": false,
+    "pricing_model": "freemium",
+    "platforms": ["Web"]
+  }
+]
