@@ -112,11 +112,13 @@ def read_tools(
         limit: int = 12,
         pricing_model: Optional[models.PricingModel] = None,
         platform: Optional[str] = None
+        # ПАРАМЕТР sort_by УДАЛЕН
 ):
     skip = (page - 1) * limit
     tools_page = crud.get_tools_with_translation(
         db=db, lang=lang, skip=skip, limit=limit, category_id=category_id, q=q,
         pricing_model=pricing_model, platform=platform
+        # ПАРАМЕТР sort_by УДАЛЕН
     )
     return tools_page
 
@@ -135,6 +137,7 @@ def read_latest_tools(
         lang: str = Depends(get_language_from_header),
         db: Session = Depends(get_db)
 ):
+    # Возвращаем старую логику с параметром 'latest'
     tools_page = crud.get_tools_with_translation(db=db, lang=lang, latest=True, limit=6)
     return tools_page
 
@@ -147,13 +150,8 @@ def read_tool_by_slug(tool_slug: str, db: Session = Depends(get_db), lang: str =
     return db_tool
 
 
-# --- ИЗМЕНЕНИЕ: СТАРЫЕ ЭНДПОИНТЫ ДЛЯ КОММЕНТАРИЕВ ЗАМЕНЕНЫ НА НОВЫЕ ДЛЯ ОТЗЫВОВ ---
-
 @app.get("/tools/{tool_slug}/reviews", response_model=List[schemas.Review], tags=["reviews"])
 def read_tool_reviews(tool_slug: str, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """
-    Получение списка отзывов для конкретного инструмента.
-    """
     return crud.get_reviews_by_tool_slug(db, slug=tool_slug, skip=skip, limit=limit)
 
 
@@ -164,10 +162,6 @@ def create_new_review_for_tool(
         db: Session = Depends(get_db),
         current_user: models.User = Depends(get_current_user)
 ):
-    """
-    Добавление нового отзыва для инструмента.
-    Доступно только для авторизованных пользователей.
-    """
     tool = crud.get_tool_by_slug_with_translation(db, slug=tool_slug)
     if not tool:
         raise HTTPException(status_code=404, detail="Инструмент не найден")
