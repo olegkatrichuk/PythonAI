@@ -75,6 +75,10 @@ def _populate_tool_translation_details(tool: models.Tool, lang: str):
     if not tool:
         return None
 
+    # ОТЛАДКА: Выводим начальные значения
+    print(
+        f"DEBUG: Processing tool '{tool.slug}'. Initial rating: {tool.average_rating}, Initial count: {tool.review_count}")
+
     translation = next((t for t in tool.translations if t.language_code == lang), None)
     if not translation:
         translation = next((t for t in tool.translations if t.language_code == 'ru'), None)
@@ -96,10 +100,15 @@ def _populate_tool_translation_details(tool: models.Tool, lang: str):
     elif not tool.platforms:
         tool.platforms = []
 
+    # Гарантируем, что числовые поля не будут None
     if tool.average_rating is None:
         tool.average_rating = 0.0
     if tool.review_count is None:
         tool.review_count = 0
+
+    # ОТЛАДКА: Выводим конечные значения
+    print(
+        f"DEBUG: Finished processing tool '{tool.slug}'. Final rating: {tool.average_rating}, Final count: {tool.review_count}")
 
     return tool
 
@@ -117,10 +126,8 @@ def get_tool_by_slug_with_translation(db: Session, slug: str, lang: str = "ru"):
 def get_tools_with_translation(
         db: Session, lang: str = "ru", skip: int = 0, limit: int = 12,
         category_id: Optional[int] = None, q: Optional[str] = None,
-        is_featured: Optional[bool] = None,
-        pricing_model: Optional[models.PricingModel] = None, platform: Optional[str] = None,
-        latest: Optional[bool] = None  # <-- УДАЛЕН ПАРАМЕТР sort_by
-):
+        latest: Optional[bool] = None, is_featured: Optional[bool] = None,
+        pricing_model: Optional[models.PricingModel] = None, platform: Optional[str] = None):
     """Получает список инструментов с поддержкой всех фильтров."""
     query = db.query(models.Tool)
     if q:
@@ -136,14 +143,8 @@ def get_tools_with_translation(
         query = query.filter(models.Tool.pricing_model == pricing_model)
     if platform is not None:
         query = query.filter(models.Tool.platforms.ilike(f"%{platform}%"))
-
-    # --- ЛОГИКА СОРТИРОВКИ УДАЛЕНА ---
-    # Добавлена сортировка по умолчанию, чтобы порядок был предсказуемым
     if latest:
         query = query.order_by(desc(models.Tool.created_at))
-    else:
-        query = query.order_by(models.Tool.id)
-
     total = query.count()
 
     tools_db = query.options(
@@ -211,6 +212,7 @@ def get_reviews_by_tool_slug(db: Session, slug: str, skip: int = 0, limit: int =
     tool = db.query(models.Tool).filter(models.Tool.slug == slug).first()
     if not tool:
         return []
+    # ИСПРАВЛЕНИЕ: Запрос должен быть к таблице Review, а не Tool
     reviews = db.query(models.Review).filter(models.Review.tool_id == tool.id).order_by(
         desc(models.Review.created_at)
     ).options(joinedload(models.Review.author)).offset(skip).limit(limit).all()
