@@ -1,7 +1,11 @@
 // eslint.config.js
 
-import eslintConfigNext from 'eslint-config-next';
+const nextConfig = require('eslint-config-next');
 
-export default [
-  ...eslintConfigNext(),
+module.exports = [
+  // Сюда можно добавлять другие конфигурации, например для Prettier.
+
+  // Базовая конфигурация Next.js.
+  // Рекомендуется размещать её в конце массива.
+  nextConfig,
 ];
