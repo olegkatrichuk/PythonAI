@@ -11,8 +11,8 @@ import SearchBar from '@/components/SearchBar';
 
 // ✅ Определяем простой и понятный тип для пропсов
 type ToolsPageProps = {
-    params: { lang: string };
-    searchParams: { [key: string]: string | string[] | undefined };
+    params: Promise<{ lang: string }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 interface ApiResponse {
@@ -49,7 +49,9 @@ async function getTools(lang: string, searchParams: URLSearchParams): Promise<Ap
 }
 
 // ✅ Возвращаем метаданные к простому виду для Next.js 14
-export async function generateMetadata({ params, searchParams }: ToolsPageProps): Promise<Metadata> {
+export async function generateMetadata(props: ToolsPageProps): Promise<Metadata> {
+    const searchParams = await props.searchParams;
+    const params = await props.params;
     const { lang } = params;
     const t = getTranslations(lang);
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -70,7 +72,9 @@ export async function generateMetadata({ params, searchParams }: ToolsPageProps)
 
 
 // ✅ Возвращаем компонент страницы к простому виду для Next.js 14
-export default async function ToolsPage({ params, searchParams }: ToolsPageProps) {
+export default async function ToolsPage(props: ToolsPageProps) {
+    const searchParams = await props.searchParams;
+    const params = await props.params;
     const { lang } = params;
     const t = getTranslations(lang);
 

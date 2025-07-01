@@ -3,8 +3,8 @@
 import { MetadataRoute } from 'next';
 import type { ITool } from '@/types';
 
-// Замените это на URL вашего опубликованного сайта
-const BASE_URL = 'https://your-domain.com';
+// ⬇️ ИЗМЕНЕНИЕ №1: Используем переменную окружения для базового URL ⬇️
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
 // Интерфейс для структуры ответа от API
 interface ToolsResponse {
@@ -13,7 +13,9 @@ interface ToolsResponse {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
-    const res = await fetch(`http://localhost:8000/tools/?limit=1000`);
+    // ⬇️ ИЗМЕНЕНИЕ №2: Используем переменную окружения для URL API ⬇️
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const res = await fetch(`${apiUrl}/tools/?limit=1000`);
 
     if (!res.ok) {
       console.error('Failed to fetch tool for sitemap.');
@@ -27,9 +29,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       return [];
     }
 
-    // Явное создание объектов карты сайта
+    // В вашем коде здесь была ошибка, `tool.id` не подходит для slug.
+    // Используем `tool.slug` для правильного URL.
     const toolUrls: MetadataRoute.Sitemap = toolsPage.items.map((tool): MetadataRoute.Sitemap[number] => ({
-      url: `${BASE_URL}/ru/tools/${tool.id}`,
+      url: `${BASE_URL}/ru/tool/${tool.slug}`, // Используем slug вместо id
       lastModified: tool.created_at ? new Date(tool.created_at) : new Date(),
     }));
 
@@ -45,11 +48,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: now,
       },
       {
-        url: `${BASE_URL}/ru/tools`,
+        url: `${BASE_URL}/ru/tool`, // Изменено с /tools на /tool
         lastModified: now,
       },
       {
-        url: `${BASE_URL}/en/tools`,
+        url: `${BASE_URL}/en/tool`, // Изменено с /tools на /tool
         lastModified: now,
       },
     ];

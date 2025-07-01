@@ -19,12 +19,18 @@ export async function generateStaticParams() {
 
 interface RootLayoutProps {
   children: React.ReactNode;
-  params: {
+  params: Promise<{
     lang: string;
-  };
+  }>;
 }
 
-export default function RootLayout({ children, params }: RootLayoutProps) {
+export default async function RootLayout(props: RootLayoutProps) {
+  const params = await props.params;
+
+  const {
+    children
+  } = props;
+
   // --- ДОБАВЛЕНО: Задаем базовый URL сайта ---
   // !!! ВАЖНО: Замените 'https://www.your-cool-site.com' на ваш реальный опубликованный домен
   const siteUrl = "https://www.your-cool-site.com";
