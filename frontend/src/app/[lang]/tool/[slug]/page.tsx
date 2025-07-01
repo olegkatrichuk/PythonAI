@@ -38,8 +38,10 @@ async function getToolBySlug(slug: string, lang: string): Promise<ITool | null> 
   }
 }
 
-// 🔎 Генерация SEO-метаданных
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+// 🔎 Генерация SEO-метаданных (типизация без PageProps!)
+export async function generateMetadata(
+  { params }: { params: { lang: string; slug: string } }
+): Promise<Metadata> {
   const { lang, slug } = params;
   const tool = await getToolBySlug(slug, lang);
 
@@ -166,3 +168,4 @@ export default async function ToolDetailPage({ params }: PageProps) {
     </div>
   );
 }
+
