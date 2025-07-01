@@ -38,9 +38,9 @@ async function getToolBySlug(slug: string, lang: string): Promise<ITool | null> 
   }
 }
 
-// 🔎 Генерация SEO-метаданных (типизация без PageProps!)
+// 🔎 Генерация SEO-метаданных (возвращаем к простому виду)
 export async function generateMetadata(
-  { params }: { params: { lang: string; slug: string } }
+  { params }: PageProps
 ): Promise<Metadata> {
   const { lang, slug } = params;
   const tool = await getToolBySlug(slug, lang);
@@ -69,7 +69,7 @@ export async function generateMetadata(
   };
 }
 
-// 🧠 Основной компонент страницы
+// 🧠 Основной компонент страницы (возвращаем к простому виду)
 export default async function ToolDetailPage({ params }: PageProps) {
   const { slug, lang } = params;
   const tool = await getToolBySlug(slug, lang);
@@ -168,4 +168,3 @@ export default async function ToolDetailPage({ params }: PageProps) {
     </div>
   );
 }
-
