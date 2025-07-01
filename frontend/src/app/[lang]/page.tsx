@@ -9,14 +9,14 @@ import FeaturedToolCard from '@/components/FeaturedToolCard';
 import InteractiveHelper from '@/components/InteractiveHelper';
 import { getTranslations } from '@/lib/translations';
 
-// ✅ Тип параметров — оставляем как есть
+// ✅ Тип параметров
 type PageProps = {
   params: {
     lang: string;
   };
 };
 
-// ✅ Метаданные для SEO (возвращаем к простому виду)
+// ✅ Метаданные для SEO
 export async function generateMetadata(
   { params }: PageProps
 ): Promise<Metadata> {
@@ -58,7 +58,7 @@ export async function generateMetadata(
   };
 }
 
-// 🔄 Получение данных (без изменений)
+// 🔄 Получение данных
 async function fetchData(url: string, lang: string) {
   try {
     const res = await fetch(url, {
@@ -73,15 +73,18 @@ async function fetchData(url: string, lang: string) {
   }
 }
 
-// ✅ Главная страница (возвращаем к простому виду)
+// ✅ Главная страница
 export default async function HomePage({ params }: PageProps) {
   const { lang } = params;
   const t = getTranslations(lang);
 
+  // ⬇️ ИЗМЕНЕНИЕ: Используем переменную окружения для URL API ⬇️
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   const [featuredToolResponse, latestToolsResponse, categories] = await Promise.all([
-    fetchData(`http://localhost:8000/tools/featured`, lang),
-    fetchData(`http://localhost:8000/tools/latest`, lang),
-    fetchData(`http://localhost:8000/categories/`, lang),
+    fetchData(`${apiUrl}/tools/featured`, lang),
+    fetchData(`${apiUrl}/tools/latest`, lang),
+    fetchData(`${apiUrl}/categories/`, lang),
   ]);
 
   return (
@@ -137,4 +140,3 @@ export default async function HomePage({ params }: PageProps) {
     </div>
   );
 }
-
