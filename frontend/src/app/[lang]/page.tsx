@@ -9,15 +9,17 @@ import FeaturedToolCard from '@/components/FeaturedToolCard';
 import InteractiveHelper from '@/components/InteractiveHelper';
 import { getTranslations } from '@/lib/translations';
 
-// ✅ Тип параметров
+// ✅ Тип параметров — используем только здесь
 type PageProps = {
   params: {
     lang: string;
   };
 };
 
-// ✅ Метаданные для SEO
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+// ✅ Метаданные для SEO — не используем PageProps, чтобы избежать конфликта с Next.js
+export async function generateMetadata(
+  { params }: { params: { lang: string } }
+): Promise<Metadata> {
   const { lang } = params;
   const t = getTranslations(lang);
 
@@ -135,4 +137,5 @@ export default async function HomePage({ params }: PageProps) {
     </div>
   );
 }
+
 
