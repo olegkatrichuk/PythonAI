@@ -1,16 +1,15 @@
 // src/app/[lang]/privacy/page.tsx
-import BackButton from '@/components/BackButton'; // 👈 1. Импортируем кнопку
+import BackButton from '@/components/BackButton';
 
+// ❗️ Тип для Next.js 15, где params - это Promise
 type PrivacyPageProps = {
-  params: {
+  params: Promise<{
     lang: string;
-  };
+  }>;
 };
 
-// Определяем тип для наших языков
 type Language = 'ru' | 'en' | 'uk';
 
-// Разделяем переводы на два объекта: для текста и для списков
 const textContent = {
     title: { ru: 'Политика конфиденциальности', en: 'Privacy Policy', uk: 'Політика конфіденційності' },
     effectiveDate: { ru: 'Дата вступления в силу: 2 июля 2025 г.', en: 'Effective Date: July 2, 2025', uk: 'Дата набрання чинності: 2 липня 2025 р.' },
@@ -56,20 +55,23 @@ const listContent = {
     ],
 };
 
-export default function PrivacyPolicyPage({ params }: PrivacyPageProps) {
-  const lang = (params.lang || 'en') as Language;
+// ❗️ Компонент должен быть async, и мы меняем его аргументы
+export default async function PrivacyPolicyPage({ params: paramsPromise }: PrivacyPageProps) {
+  // ❗️ "Распаковываем" params с помощью await
+  const { lang } = await paramsPromise;
+  const currentLang = (lang || 'en') as Language;
 
   const getText = (key: keyof typeof textContent) => {
-    return textContent[key]?.[lang] ?? textContent[key]['en'];
+    return textContent[key]?.[currentLang] ?? textContent[key]['en'];
   };
 
   const getList = (key: keyof typeof listContent) => {
-    return listContent[key].map(item => item[lang] ?? item['en']);
+    return listContent[key].map(item => item[currentLang] ?? item['en']);
   };
 
   return (
     <div className="container mx-auto max-w-4xl py-12 px-4">
-      <BackButton /> {/* 👈 2. Добавляем кнопку */}
+      <BackButton />
       <article className="prose prose-invert lg:prose-xl">
         <h1>{getText('title')}</h1>
         <p className="text-sm text-gray-400">{getText('effectiveDate')}</p>

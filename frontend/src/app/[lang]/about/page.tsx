@@ -1,16 +1,20 @@
 // src/app/[lang]/about/page.tsx
 import BackButton from '@/components/BackButton';
 
+// ❗️ Тип для Next.js 15
 type AboutPageProps = {
-  params: {
+  params: Promise<{
     lang: string;
-  };
+  }>;
 };
 
-export default function AboutPage({ params }: AboutPageProps) {
-  const { lang } = params;
+type Language = 'ru' | 'en' | 'uk';
 
-  type Language = 'ru' | 'en' | 'uk';
+// ❗️ Компонент має бути async
+export default async function AboutPage({ params: paramsPromise }: AboutPageProps) {
+  // ❗️ "Розпаковуємо" params
+  const { lang } = await paramsPromise;
+  const currentLang = lang as Language;
 
   const t = (key: 'title' | 'p1' | 'p2') => {
     const translations = {
@@ -18,7 +22,7 @@ export default function AboutPage({ params }: AboutPageProps) {
       p1: { ru: 'GetAIFind - это проект, созданный для помощи разработчикам, маркетологам и энтузиастам в поиске лучших AI-инструментов для их задач.', en: 'GetAIFind is a project created to help developers, marketers, and enthusiasts find the best AI tools for their tasks.', uk: 'GetAIFind - це проєкт, створений для допомоги розробникам, маркетологам та ентузіастам у пошуку найкращих AI-інструментів для їхніх завдань.' },
       p2: { ru: 'Наша миссия - сделать мир искусственного интеллекта доступным и понятным для всех.', en: 'Our mission is to make the world of artificial intelligence accessible and understandable for everyone.', uk: 'Наша місія - зробити світ штучного інтелекту доступним та зрозумілим для всіх.' },
     };
-    return translations[key][lang as Language] ?? translations[key]['en'];
+    return translations[key][currentLang] ?? translations[key]['en'];
   };
 
   return (
