@@ -29,6 +29,7 @@ export interface ITool {
   icon_url?: string;
   is_featured?: boolean;
   created_at?: string;
+  updated_at?: string; // 👈 ✅ ДОБАВЛЕНО ЭТО ПОЛЕ
 
   // Поля для фильтров
   pricing_model: 'free' | 'freemium' | 'paid' | 'trial';

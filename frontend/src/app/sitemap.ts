@@ -3,63 +3,69 @@
 import { MetadataRoute } from 'next';
 import type { ITool } from '@/types';
 
-// ⬇️ ИЗМЕНЕНИЕ №1: Используем переменную окружения для базового URL ⬇️
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+// ✅ Определяем базовые константы из переменных окружения
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://getaifind.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// Интерфейс для структуры ответа от API
+// ✅ Список поддерживаемых языков
+const languages = ['en', 'ru', 'uk'];
+
 interface ToolsResponse {
   items: ITool[];
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const now = new Date();
+
+  // ✅ 1. Генерируем URL для статических страниц для каждого языка
+  const staticPages = ['tool', 'blog', 'about', 'contacts', 'privacy', 'terms'];
+  const staticUrls = languages.flatMap(lang => {
+    // Добавляем главную страницу для каждого языка
+    const langUrls: MetadataRoute.Sitemap = [{
+        url: `${BASE_URL}/${lang}`,
+        lastModified: now,
+    }];
+    // Добавляем остальные статические страницы
+    staticPages.forEach(page => {
+        langUrls.push({
+            url: `${BASE_URL}/${lang}/${page}`,
+            lastModified: now,
+        });
+    });
+    return langUrls;
+  });
+
+
+  // ✅ 2. Генерируем URL для динамических страниц (инструменты)
+  let toolUrls: MetadataRoute.Sitemap = [];
   try {
-    // ⬇️ ИЗМЕНЕНИЕ №2: Используем переменную окружения для URL API ⬇️
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const res = await fetch(`${apiUrl}/tools/?limit=1000`);
-
-    if (!res.ok) {
-      console.error('Failed to fetch tool for sitemap.');
-      return [];
+    const res = await fetch(`${API_URL}/tools/?limit=1000`);
+    if (res.ok) {
+      const toolsResponse: ToolsResponse = await res.json();
+      if (toolsResponse && Array.isArray(toolsResponse.items)) {
+        // Создаем URL для каждого инструмента на каждом языке
+        toolUrls = toolsResponse.items.flatMap(tool =>
+          languages.map(lang => ({
+            url: `${BASE_URL}/${lang}/tool/${tool.slug}`,
+            lastModified: tool.updated_at ? new Date(tool.updated_at) : new Date(),
+          }))
+        );
+      }
     }
-
-    const toolsPage: ToolsResponse = await res.json();
-
-    if (!toolsPage || !Array.isArray(toolsPage.items)) {
-      console.error('Invalid data structure received for sitemap.');
-      return [];
-    }
-
-    // В вашем коде здесь была ошибка, `tool.id` не подходит для slug.
-    // Используем `tool.slug` для правильного URL.
-    const toolUrls: MetadataRoute.Sitemap = toolsPage.items.map((tool): MetadataRoute.Sitemap[number] => ({
-      url: `${BASE_URL}/ru/tool/${tool.slug}`, // Используем slug вместо id
-      lastModified: tool.created_at ? new Date(tool.created_at) : new Date(),
-    }));
-
-    const now = new Date();
-
-    const staticUrls: MetadataRoute.Sitemap = [
-      {
-        url: `${BASE_URL}/ru`,
-        lastModified: now,
-      },
-      {
-        url: `${BASE_URL}/en`,
-        lastModified: now,
-      },
-      {
-        url: `${BASE_URL}/ru/tool`, // Изменено с /tools на /tool
-        lastModified: now,
-      },
-      {
-        url: `${BASE_URL}/en/tool`, // Изменено с /tools на /tool
-        lastModified: now,
-      },
-    ];
-
-    return [...staticUrls, ...toolUrls];
   } catch (error) {
-    console.error('An error occurred while generating sitemap:', error);
-    return [];
+    console.error('Sitemap: Failed to fetch tools', error);
   }
+
+  // ✅ 3. Генерируем URL для статей блога (пока что одна)
+  const blogSlugs = ['top-5-ai-for-devs'];
+  const blogUrls = blogSlugs.flatMap(slug =>
+    languages.map(lang => ({
+        url: `${BASE_URL}/${lang}/blog/${slug}`,
+        lastModified: now, // В будущем можно будет брать дату из API
+    }))
+  );
+
+
+  // ✅ 4. Объединяем все URL в один массив
+  return [...staticUrls, ...toolUrls, ...blogUrls];
 }
