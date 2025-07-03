@@ -12,9 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import crud, models, schemas, security
 from .database import get_db, engine
 
-# Создаем таблицы в базе данных (если их нет)
-models.Base.metadata.create_all(bind=engine)
-
+# app = FastAPI(title="AI Finder API")
 app = FastAPI(title="AI Finder API")
 router = APIRouter(prefix="/api")
 
