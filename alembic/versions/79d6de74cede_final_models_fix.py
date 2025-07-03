@@ -84,7 +84,8 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_tool_translations_id'), 'tool_translations', ['id'], unique=False)
-    op.create_index(op.f('ix_tool_translations_name'), 'tool_translations', ['name'], unique=False)
+    # create index if not exists to avoid duplicate errors
+    op.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_tool_translations_name ON tool_translations (name)"))
     # ### end Alembic commands ###
 
 
