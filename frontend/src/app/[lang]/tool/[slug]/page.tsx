@@ -8,8 +8,6 @@ import Link from 'next/link';
 import StarRating from '@/components/StarRating';
 import ReviewsSection from '@/components/ReviewsSection';
 
-// ❗️ Явно указываем, что страница динамическая
-export const dynamic = 'force-dynamic';
 
 type PageProps = {
   params: Promise<{

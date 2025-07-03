@@ -9,8 +9,6 @@ import FeaturedToolCard from '@/components/FeaturedToolCard';
 import InteractiveHelper from '@/components/InteractiveHelper';
 import { getTranslations } from '@/lib/translations';
 
-// ❗️ Явно указываем, что страница динамическая
-export const dynamic = 'force-dynamic';
 
 // ✅ Тип параметров
 type PageProps = {

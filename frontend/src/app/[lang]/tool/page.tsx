@@ -9,8 +9,6 @@ import ToolList from '@/components/ToolList';
 import CategoryFilter from '@/components/CategoryFilter';
 import SearchBar from '@/components/SearchBar';
 
-// ❗️ Явно указываем, что страница динамическая
-export const dynamic = 'force-dynamic';
 
 // Определяем простой и понятный тип для пропсов
 type ToolsPageProps = {
