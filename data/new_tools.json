@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Claude",
+    "url": "https://www.anthropic.com/claude",
+    "description": "A family of foundational AI models that can be used in a variety of applications. Known for its large context window and strong performance in a wide range of tasks.",
+    "tags": ["text", "writing", "llm"],
+    "pricing_model": "freemium",
+    "platforms": ["Web", "API"],
+    "is_featured": false
+  },
+  {
+    "name": "Canva Magic Studio",
+    "url": "https://www.canva.com/magic-studio/",
+    "description": "A suite of AI-powered features within Canva that can help you design, write, and edit with ease. Includes Magic Design, Magic Write, and more.",
+    "tags": ["design", "image", "video", "writing"],
+    "pricing_model": "freemium",
+    "platforms": ["Web"],
+    "is_featured": true
+  },
+  {
+    "name": "Zapier Agents",
+    "url": "https://zapier.com/ai/agents",
+    "description": "An experimental AI tool that can automate tasks across thousands of apps. You can create AI agents to handle complex workflows through a simple chat interface.",
+    "tags": ["productivity", "automation", "business"],
+    "pricing_model": "trial",
+    "platforms": ["Web", "API"],
+    "is_featured": false
+  },
+  {
+    "name": "Notion Q&A",
+    "url": "https://www.notion.so/product/ai",
+    "description": "An AI feature in Notion that allows you to ask questions about your workspace content and get intelligent answers. It can help you find information, summarize documents, and more.",
+    "tags": ["productivity", "notes", "assistant"],
+    "pricing_model": "freemium",
+    "platforms": ["Web", "Windows", "macOS", "iOS", "Android"],
+    "is_featured": true
+  },
+  {
+    "name": "Tabnine",
+    "url": "https://www.tabnine.com/",
+    "description": "An AI code assistant that provides real-time code completions in your IDE. It supports a wide range of languages and editors.",
+    "tags": ["code", "developer", "programming"],
+    "pricing_model": "freemium",
+    "platforms": ["Windows", "macOS"],
+    "is_featured": false
+  }
+]

@@ -4,10 +4,10 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import LanguageSwitcher from './LanguageSwitcher';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useParams, useRouter } from 'next/navigation';
 import { getTranslations } from '@/lib/translations';
-import { ThemeSwitcher } from './ThemeSwitcher';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
