@@ -9,10 +9,13 @@ import ToolList from '@/components/ToolList';
 import CategoryFilter from '@/components/CategoryFilter';
 import SearchBar from '@/components/SearchBar';
 
+// ❗️ Явно указываем, что страница динамическая
+export const dynamic = 'force-dynamic';
+
 // Определяем простой и понятный тип для пропсов
 type ToolsPageProps = {
-    params: { lang: string };
-    searchParams: { [key: string]: string | string[] | undefined };
+    params: Promise<{ lang: string }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 interface ApiResponse {
@@ -48,8 +51,9 @@ async function getTools(lang: string, searchParams: URLSearchParams): Promise<Ap
     }
 }
 
-// Возвращаем метаданные к простому виду для Next.js 14
-export async function generateMetadata({ params }: ToolsPageProps): Promise<Metadata> {
+// Возвращаем метаданные к простому виду для Next.js 15
+export async function generateMetadata({ params: paramsPromise }: ToolsPageProps): Promise<Metadata> {
+    const params = await paramsPromise;
     const { lang } = params;
     const t = getTranslations(lang);
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -66,22 +70,15 @@ export async function generateMetadata({ params }: ToolsPageProps): Promise<Meta
 }
 
 
-// Возвращаем компонент страницы к простому виду для Next.js 14
-export default async function ToolsPage({ params, searchParams }: ToolsPageProps) {
+// Возвращаем компонент страницы к простому виду для Next.js 15
+export default async function ToolsPage({ params: paramsPromise, searchParams: searchParamsPromise }: ToolsPageProps) {
+    const params = await paramsPromise;
+    const searchParams = await searchParamsPromise;
     const { lang } = params;
     const t = getTranslations(lang);
 
     // Преобразуем searchParams в стандартный URLSearchParams
-    const queryParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(searchParams)) {
-        if (Array.isArray(value)) {
-            for (const v of value) {
-                queryParams.append(key, v);
-            }
-        } else {
-            queryParams.set(key, value);
-        }
-    }
+    const queryParams = new URLSearchParams(searchParams as any);
 
     const { items: tools, total } = await getTools(lang, queryParams);
     const page = Number(queryParams.get('page') ?? '1');

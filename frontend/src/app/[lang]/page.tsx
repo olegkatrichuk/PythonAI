@@ -9,15 +9,19 @@ import FeaturedToolCard from '@/components/FeaturedToolCard';
 import InteractiveHelper from '@/components/InteractiveHelper';
 import { getTranslations } from '@/lib/translations';
 
+// ❗️ Явно указываем, что страница динамическая
+export const dynamic = 'force-dynamic';
+
 // ✅ Тип параметров
 type PageProps = {
-  params: {
+  params: Promise<{
     lang: string;
-  };
+  }>;
 };
 
 // ✅ Метаданные для SEO
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params: paramsPromise }: PageProps): Promise<Metadata> {
+  const params = await paramsPromise;
   const { lang } = params;
   const t = getTranslations(lang);
 
@@ -78,7 +82,8 @@ async function fetchData(url: string, lang: string) {
 }
 
 // ✅ Главная страница
-export default async function HomePage({ params }: PageProps) {
+export default async function HomePage({ params: paramsPromise }: PageProps) {
+  const params = await paramsPromise;
   const { lang } = params;
   const t = getTranslations(lang);
 

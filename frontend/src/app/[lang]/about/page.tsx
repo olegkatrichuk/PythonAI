@@ -4,8 +4,14 @@ import type { Metadata } from 'next';
 import { getTranslations } from '@/lib/translations';
 import { HeartHandshake, Sparkles, Users } from 'lucide-react';
 
+// ❗️ Тип для пропсов в Next.js 15
+type PageProps = {
+  params: Promise<{ lang: string }>;
+};
+
 // SEO Metadata
-export async function generateMetadata({ params }: { params: { lang: string } }) {
+export async function generateMetadata({ params: paramsPromise }: PageProps): Promise<Metadata> {
+  const params = await paramsPromise;
   const t = getTranslations(params.lang);
   return {
     title: t('about_title'),
@@ -24,7 +30,8 @@ const FeatureCard = ({ icon, title, text }: { icon: React.ReactNode; title: stri
   </div>
 );
 
-export default async function AboutPage({ params }: { params: { lang: string } }) {
+export default async function AboutPage({ params: paramsPromise }: PageProps) {
+  const params = await paramsPromise;
   const t = getTranslations(params.lang);
 
   return (

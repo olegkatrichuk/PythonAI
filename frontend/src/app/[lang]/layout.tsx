@@ -21,13 +21,15 @@ export async function generateStaticParams() {
 // ❗️ Тип для Next.js 15, где params - это Promise
 interface RootLayoutProps {
   children: React.ReactNode;
-  params: {
+  params: Promise<{
     lang: string;
-  };
+  }>;
 }
 
-// ❗️ Компонент больше не должен быть `async` только для получения params
-export default function RootLayout({ children, params }: RootLayoutProps) {
+// ❗️ Компонент должен быть `async`, чтобы использовать await
+export default async function RootLayout({ children, params: paramsPromise }: RootLayoutProps) {
+  // ❗️ Сначала "распаковываем" params с помощью await
+  const params = await paramsPromise;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://getaifind.com";
 
   const websiteSchema = {

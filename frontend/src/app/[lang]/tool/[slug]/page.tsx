@@ -8,11 +8,14 @@ import Link from 'next/link';
 import StarRating from '@/components/StarRating';
 import ReviewsSection from '@/components/ReviewsSection';
 
+// ❗️ Явно указываем, что страница динамическая
+export const dynamic = 'force-dynamic';
+
 type PageProps = {
-  params: {
+  params: Promise<{
     lang: string;
     slug: string;
-  };
+  }>;
 };
 
 const PRICING_INFO = {
@@ -39,7 +42,8 @@ async function getToolBySlug(slug: string, lang: string): Promise<ITool | null> 
 }
 
 // 🔎 Генерация SEO-метаданных (возвращаем к простому виду)
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params: paramsPromise }: PageProps): Promise<Metadata> {
+  const params = await paramsPromise;
   const { lang, slug } = params;
   const tool = await getToolBySlug(slug, lang);
 
@@ -77,7 +81,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 // 🧠 Основной компонент страницы (возвращаем к простому виду)
-export default async function ToolDetailPage({ params }: PageProps) {
+export default async function ToolDetailPage({ params: paramsPromise }: PageProps) {
+  const params = await paramsPromise;
   const { slug, lang } = params;
   const tool = await getToolBySlug(slug, lang);
 
