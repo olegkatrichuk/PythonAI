@@ -1,16 +1,15 @@
 // src/app/[lang]/layout.tsx
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "../globals.css";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-
-const inter = Inter({ subsets: ["latin"] });
+import { Providers } from "../providers";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: { default: "AI Tools Finder", template: "%s | AI Tools Finder" },
   description: "Находите и сравнивайте лучшие AI-инструменты.",
 };
@@ -47,27 +46,29 @@ export default async function RootLayout(props: RootLayoutProps) {
   };
 
   return (
-    <html lang={params.lang}>
+    <html lang={params.lang} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
       </head>
-      <body className={`${inter.className} bg-slate-900 text-slate-100`}>
-        <AuthProvider>
-          <Toaster position="bottom-right" toastOptions={{ style: { background: '#334155', color: '#f1f5f9' } }} />
+      <body className="bg-background text-foreground">
+        <Providers>
+          <AuthProvider>
+            <Toaster position="bottom-right" toastOptions={{ style: { background: '#334155', color: '#f1f5f9' } }} />
 
-          {/* Navbar - клиентский компонент, ему lang не нужен */}
-          <Navbar />
+            {/* Navbar - клиентский компонент, ему lang не нужен */}
+            <Navbar />
 
-          <main className="container mx-auto px-4 py-8 min-h-screen">
-            {children}
-          </main>
+            <main className="container mx-auto px-4 py-8 min-h-screen">
+              {children}
+            </main>
 
-          {/* Footer - серверный компонент, ему нужен lang */}
-          <Footer lang={params.lang} />
-        </AuthProvider>
+            {/* Footer - серверный компонент, ему нужен lang */}
+            <Footer lang={params.lang} />
+          </AuthProvider>
+        </Providers>
       </body>
     </html>
   );

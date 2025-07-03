@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { getTranslations } from '@/lib/translations';
 import type { ICategory } from '@/types';
 import axios from 'axios';
@@ -16,6 +16,7 @@ const PLATFORM_OPTIONS = ['Web', 'API', 'Windows', 'macOS', 'iOS', 'Android'];
 export default function CategoryFilter() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const router = useRouter();
     const lang = pathname.split('/')[1] || 'ru';
     const t = getTranslations(lang);
 
@@ -29,15 +30,31 @@ export default function CategoryFilter() {
         { key: 'trial', label: t('pricing_trial') }
     ];
 
+    const SORT_OPTIONS = [
+        { key: 'created_at', label: t('sort_newest') },
+        { key: 'rating', label: t('sort_popular') },
+        { key: 'review_count', label: t('sort_discussed') },
+    ];
+
     // Загружаем категории при монтировании
     useEffect(() => {
         const fetchCategories = async () => {
-            const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/categories/`;
+            const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/categories/`;
             try {
                 const res = await axios.get(apiUrl, { headers: { 'Accept-Language': lang } });
                 setCategories(res.data);
-            } catch (error) {
-                console.error("Failed to fetch categories:", error);
+            } catch (error: unknown) {
+                if (axios.isAxiosError(error)) {
+                    console.error("Failed to fetch categories:", error.message);
+                    if (error.response) {
+                        console.error("Response data:", error.response.data);
+                        console.error("Response status:", error.response.status);
+                    } else if (error.request) {
+                        console.error("No response received:", error.request);
+                    }
+                } else {
+                    console.error("An unexpected error occurred:", error);
+                }
             }
         };
         void fetchCategories();
@@ -57,20 +74,44 @@ export default function CategoryFilter() {
         return `${pathname}?${params.toString()}`;
     };
 
+    const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('sort_by', e.target.value);
+        params.set('page', '1');
+        router.push(`${pathname}?${params.toString()}`);
+    };
+
     // Определяем, какие фильтры активны сейчас, для подсветки
     const activeCategoryId = searchParams.get('category_id');
     const activePricing = searchParams.get('pricing_model');
     const activePlatform = searchParams.get('platform');
+    const activeSort = searchParams.get('sort_by') || 'created_at';
 
     // --- Общая стилизация для кнопок-фильтров ---
     const baseLinkStyle = "block w-full text-left px-3 py-2 rounded-md text-sm transition-colors text-slate-300 hover:bg-slate-700/50";
     const activeLinkStyle = "bg-blue-600 text-white font-semibold shadow-md";
 
     return (
-        <aside className="w-full bg-slate-800/50 p-4 rounded-lg border border-slate-700/50 space-y-6">
+        <aside className="w-full bg-cardBackground p-4 rounded-lg border border-foreground/10 space-y-6">
+            {/* Блок сортировки */}
+            <div>
+                <h3 className="font-bold text-lg mb-3 text-foreground font-jakarta">{t('sort_title')}</h3>
+                <select
+                    onChange={handleSortChange}
+                    value={activeSort}
+                    className="w-full bg-cardBackground border-foreground/20 text-foreground rounded-md shadow-sm p-2"
+                >
+                    {SORT_OPTIONS.map(option => (
+                        <option key={option.key} value={option.key}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
             {/* Блок категорий */}
             <div>
-                <h3 className="font-bold text-lg mb-3 text-white">{t('categories_title')}</h3>
+                <h3 className="font-bold text-lg mb-3 text-foreground font-jakarta">{t('categories_title')}</h3>
                 <ul className="space-y-1">
                     <li>
                         <Link
@@ -96,7 +137,7 @@ export default function CategoryFilter() {
             {/* Блок "Модель цены" */}
             <div>
                 {/* --- ИЗМЕНЕНИЕ 2: Заголовок использует перевод --- */}
-                <h3 className="font-bold text-lg mb-3 text-white">{t('pricing_model_title')}</h3>
+                <h3 className="font-bold text-lg mb-3 text-foreground font-jakarta">{t('pricing_model_title')}</h3>
                 <ul className="space-y-1">
                     {PRICING_OPTIONS.map(option => (
                         <li key={option.key}>
@@ -114,7 +155,7 @@ export default function CategoryFilter() {
             {/* Блок "Платформы" */}
             <div>
                  {/* --- ИЗМЕНЕНИЕ 3: Заголовок использует перевод --- */}
-                <h3 className="font-bold text-lg mb-3 text-white">{t('platforms_title')}</h3>
+                <h3 className="font-bold text-lg mb-3 text-foreground font-jakarta">{t('platforms_title')}</h3>
                  <ul className="space-y-1">
                     {PLATFORM_OPTIONS.map(platform => (
                         <li key={platform}>

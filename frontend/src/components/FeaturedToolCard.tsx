@@ -18,22 +18,22 @@ export default function FeaturedToolCard({ tool, lang, buttonText }: FeaturedToo
   }
 
   return (
-    <div className="bg-slate-800/50 border border-blue-500/50 rounded-2xl p-8 text-center flex flex-col items-center shadow-lg shadow-blue-600/10">
+    <div className="bg-cardBackground border border-primary/50 rounded-2xl p-8 text-center flex flex-col items-center shadow-lg shadow-primary/10">
 
       {/* Тег категории */}
       {tool.category && (
-        <span className="bg-blue-600/20 text-blue-300 text-sm font-semibold px-4 py-1 rounded-full mb-6">
+        <span className="bg-primary/10 text-primary text-sm font-semibold px-4 py-1 rounded-full mb-6">
           {tool.category.name}
         </span>
       )}
 
       {/* Название */}
-      <h3 className="text-4xl font-bold text-white mb-4">
+      <h3 className="text-4xl font-bold text-foreground font-jakarta mb-4">
         {tool.name}
       </h3>
 
       {/* Описание */}
-      <p className="text-lg text-slate-400 max-w-xl mx-auto mb-6">
+      <p className="text-lg text-foreground/70 max-w-xl mx-auto mb-6">
         {tool.description}
       </p>
 
@@ -41,7 +41,7 @@ export default function FeaturedToolCard({ tool, lang, buttonText }: FeaturedToo
       {/* Кнопка с правильной ссылкой, использующей tool.slug */}
       <Link
         href={`/${lang}/tool/${tool.slug}`}
-        className="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-blue-700 transition-colors shadow-md"
+        className="inline-block bg-primary text-primaryForeground font-bold py-3 px-8 rounded-lg text-lg hover:bg-primary/90 transition-colors shadow-md"
       >
         {buttonText}
       </Link>

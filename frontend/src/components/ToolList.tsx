@@ -4,6 +4,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { getTranslations } from '@/lib/translations';
+import { motion } from 'framer-motion';
 
 import type { ITool, ICategory } from '@/types';
 import ToolCard from '@/components/ToolCard';
@@ -25,7 +26,7 @@ export default function ToolList({ tools, total, page, limit, lang }: ToolListPr
     const searchParams = useSearchParams();
     const t = getTranslations(lang);
 
-    // Логика пагинации
+    // Логика ��агинации
     const hasPrevPage = page > 1;
     const hasNextPage = (page * limit) < total;
 
@@ -48,13 +49,28 @@ export default function ToolList({ tools, total, page, limit, lang }: ToolListPr
         );
     }
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1,
+            },
+        },
+    };
+
     return (
         <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+            >
                 {tools.map(tool => (
                     <ToolCard key={tool.id} tool={tool} lang={lang} />
                 ))}
-            </div>
+            </motion.div>
 
             {/* Пагинация будет отображаться только если инструментов больше, чем на одной странице */}
             {total > limit && (

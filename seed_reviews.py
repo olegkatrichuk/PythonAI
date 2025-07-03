@@ -31,19 +31,22 @@ REVIEWS_TO_ADD = [
 ]
 
 
-def seed_reviews():
+def seed_reviews(force: bool = False):
     """
     Основная функция для заполнения базы данных тестовыми отзывами и рейтингами.
     """
     db: Session = SessionLocal()
 
-    confirmation = input(
-        "Вы уверены, что хотите ОЧИСТИТЬ старые отзывы и добавить новые? (y/n): "
-    )
-    if confirmation.lower().strip() != 'y':
-        print("Операция отменена.")
-        db.close()
-        return
+    if not force:
+        confirmation = input(
+            "Вы уверены, что хотите ОЧИСТИТЬ старые отзывы и добавить новые? (y/n): "
+        )
+        if confirmation.lower().strip() != 'y':
+            print("Операция отменена.")
+            db.close()
+            return
+    else:
+        print("Запуск в принудительном режиме (--force). Пропускаем подтверждение.")
 
     print("Подключение к базе данных установлено...")
 
@@ -121,4 +124,5 @@ def seed_reviews():
 if __name__ == "__main__":
     print("Проверка и создание таблиц (если необходимо)...")
     Base.metadata.create_all(bind=engine)
-    seed_reviews()
+    force_run = '--force' in sys.argv
+    seed_reviews(force=force_run)

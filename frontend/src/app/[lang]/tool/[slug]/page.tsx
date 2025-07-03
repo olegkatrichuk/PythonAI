@@ -24,7 +24,7 @@ const PRICING_INFO = {
 
 // 🔄 Получение одного инструмента
 async function getToolBySlug(slug: string, lang: string): Promise<ITool | null> {
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tools/${slug}`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/${slug}`;
   try {
     const res = await fetch(apiUrl, {
       headers: { 'Accept-Language': lang },
@@ -65,6 +65,16 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
       locale: lang,
       type: 'website',
     },
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/${lang}/tool/${slug}`,
+      languages: {
+        'en': `${process.env.NEXT_PUBLIC_SITE_URL}/en/tool/${slug}`,
+        'ru': `${process.env.NEXT_PUBLIC_SITE_URL}/ru/tool/${slug}`,
+        'uk': `${process.env.NEXT_PUBLIC_SITE_URL}/uk/tool/${slug}`,
+        'x-default': `${process.env.NEXT_PUBLIC_SITE_URL}/en/tool/${slug}`,
+      },
+    },
+    
   };
 }
 
@@ -82,8 +92,38 @@ export default async function ToolDetailPage(props: PageProps) {
     ? PRICING_INFO[tool.pricing_model.toLowerCase() as keyof typeof PRICING_INFO]
     : null;
 
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": tool.name,
+    "description": tool.description,
+    "image": tool.icon_url || `${process.env.NEXT_PUBLIC_SITE_URL}/og-image.png`,
+    "url": `${process.env.NEXT_PUBLIC_SITE_URL}/${lang}/tool/${tool.slug}`,
+    "brand": {
+      "@type": "Brand",
+      "name": tool.name
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": tool.url,
+      "priceCurrency": "USD",
+      "price": tool.pricing_model === "free" || tool.pricing_model === "freemium" ? "0" : "0",
+      "availability": "https://schema.org/InStock"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": tool.average_rating.toFixed(1),
+      "reviewCount": tool.review_count
+    },
+    "review": []
+  };
+
   return (
     <div className="max-w-4xl mx-auto py-12 px-4">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
       <div className="grid md:grid-cols-3 gap-8 md:gap-12">
         <aside className="md:col-span-1 flex flex-col items-center md:items-start">
           <div className="relative w-32 h-32 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden mb-6">
@@ -139,24 +179,27 @@ export default async function ToolDetailPage(props: PageProps) {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 mt-4">
+          <ul className="flex flex-wrap items-center gap-2 mt-4">
             {pricingInfo && (
-              <span
-                className={`text-xs font-medium px-2.5 py-1 rounded-full ${pricingInfo.className}`}
-              >
-                {pricingInfo.text}
-              </span>
+              <li>
+                <span
+                  className={`text-xs font-medium px-2.5 py-1 rounded-full ${pricingInfo.className}`}
+                >
+                  {pricingInfo.text}
+                </span>
+              </li>
             )}
             {tool.platforms &&
               tool.platforms.map((platform) => (
-                <span
-                  key={platform}
-                  className="bg-slate-700 text-slate-300 text-xs font-medium px-2.5 py-1 rounded-full"
-                >
-                  {platform}
-                </span>
+                <li key={platform}>
+                  <span
+                    className="bg-slate-700 text-slate-300 text-xs font-medium px-2.5 py-1 rounded-full"
+                  >
+                    {platform}
+                  </span>
+                </li>
               ))}
-          </div>
+          </ul>
 
           <div className="prose prose-lg prose-invert text-slate-300 mt-6">
             <p>{tool.description}</p>

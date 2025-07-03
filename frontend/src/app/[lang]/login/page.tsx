@@ -8,6 +8,7 @@ import { useRouter, useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { AuthContext } from '@/contexts/AuthContext';
 import { getTranslations } from '@/lib/translations';
+import axios, { isAxiosError } from 'axios';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,35 +43,26 @@ export default function LoginPage() {
     formData.append('password', password);
 
     try {
-      const response = await fetch('http://localhost:8000/token', {
-        method: 'POST',
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/token`;
+      const response = await axios.post(apiUrl, formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData.toString(),
       });
 
-      if (!response.ok) {
-        // Попытаемся прочитать ошибку с сервера
-        try {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || t('login_error_credentials'));
-        } catch {
-            throw new Error(t('login_error_credentials'));
-        }
-      }
-
-      const data = await response.json();
-
-      if (data.access_token) {
-        login(data.access_token);
+      if (response.data.access_token) {
+        login(response.data.access_token);
         toast.success('Вы успешно вошли!');
         router.push(`/${lang}`);
       } else {
-        throw new Error(t('login_error_token'));
+        toast.error(t('login_error_token'));
       }
-
-    } catch (error: any) {
-      console.error("Login Error:", error);
-      toast.error(error.message);
+    } catch (error) {
+      if (isAxiosError(error) && error.response) {
+        const errorMessage = error.response.data?.detail || t('login_error_credentials');
+        toast.error(errorMessage);
+      } else {
+        console.error("Login Error:", error);
+        toast.error('Не удалось связаться с сервером. Проверьте ваше интернет-соединение.');
+      }
     } finally {
       setLoading(false);
     }

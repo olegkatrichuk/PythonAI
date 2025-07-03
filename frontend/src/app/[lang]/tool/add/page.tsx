@@ -78,7 +78,7 @@ export default function AddToolPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/categories/`;
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/categories/`;
         const res = await fetch(apiUrl, { headers: { 'Accept-Language': lang } });
         if (res.ok) setCategories(await res.json());
       } catch (error) { console.error("Failed to fetch categories:", error); }
@@ -176,7 +176,7 @@ export default function AddToolPage() {
     };
 
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tools/`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/`;
       const response = await axios.post(apiUrl, payload, { headers: { Authorization: `Bearer ${token}` } });
       toast.success('Инструмент успешно добавлен!');
       router.push(`/${lang}/tool/${response.data.slug}`);

@@ -22,7 +22,7 @@ interface ApiResponse {
 
 // ✅ Функция для получения данных (она у вас уже была правильной)
 async function getTools(lang: string, searchParams: URLSearchParams): Promise<ApiResponse> {
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tools/?${searchParams.toString()}`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/?${searchParams.toString()}`;
 
     console.log(`[SERVER DEBUG] Запрашиваю URL: ${apiUrl}`);
 

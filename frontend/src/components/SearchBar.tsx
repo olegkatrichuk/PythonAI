@@ -12,15 +12,18 @@ export default function SearchBar() {
   const params = useParams();
   const lang = params.lang as string;
 
+  const initialQuery = searchParams.get('q') || ''; // Стандартное имя для поиска - 'q'
+  const [query, setQuery] = useState(initialQuery);
+
   // Проверка на случай, если lang еще не определен
+  // Примечание: Хуки должны вызываться безусловно.
+  // Если lang может быть неопределенным, это должно быть обработано на более высоком уровне,
+  // или предоставлено значение по умолчанию.
+  const t = getTranslations(lang || 'en'); // Предоставляем значение по умолчанию 'en'
+
   if (!lang) {
     return null;
   }
-
-  const t = getTranslations(lang);
-
-  const initialQuery = searchParams.get('q') || ''; // Стандартное имя для поиска - 'q'
-  const [query, setQuery] = useState(initialQuery);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();

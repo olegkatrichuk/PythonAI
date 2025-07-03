@@ -8,7 +8,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getTranslations } from '@/lib/translations';
 import type { ITool } from '@/types';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import toast from 'react-hot-toast';
 
 import ConfirmationDialog from '@/components/ConfirmationDialog';
@@ -30,7 +30,7 @@ export default function MyToolsPage() {
     try {
       setLoading(true);
       // ИЗМЕНЕНИЕ 1: Используем переменную окружения
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/users/me/tools/`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/users/me/tools/`;
       const response = await axios.get(apiUrl, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -39,12 +39,17 @@ export default function MyToolsPage() {
       });
       setMyTools(response.data);
     } catch (error) {
-      console.error("Failed to fetch user's tools", error);
-      toast.error("Не удалось загрузить ваши инструменты.");
+      if (isAxiosError(error) && error.response?.status === 401) {
+        toast.error("Сессия истекла. Пожалуйста, войдите заново.");
+        router.push(`/${lang}/login`);
+      } else {
+        console.error("Failed to fetch user's tools", error);
+        toast.error("Не удалось загрузить ваши инструменты.");
+      }
     } finally {
       setLoading(false);
     }
-  }, [lang]);
+  }, [lang, router]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -73,15 +78,28 @@ export default function MyToolsPage() {
 
     try {
         // ИЗМЕНЕНИЕ 2: Используем переменную окружения
-        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tools/${toolToDelete.id}`;
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/${toolToDelete.id}`;
         await axios.delete(apiUrl, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         toast.success("Инструмент успешно удален.");
         setMyTools(prevTools => prevTools.filter(tool => tool.id !== toolToDelete.id));
     } catch (error) {
-        console.error("Failed to delete tool:", error);
-        toast.error("Не удалось удалить инструмент.");
+        if (isAxiosError(error) && error.response) {
+            if (error.response.status === 401) {
+                toast.error("Сессия истекла. Пожалуйста, войдите заново.");
+                router.push(`/${lang}/login`);
+            } else if (error.response.status === 404) {
+                toast.error("Инструмент не найден. Возможно, он уже был удален.");
+                setMyTools(prevTools => prevTools.filter(tool => tool.id !== toolToDelete.id));
+            } else {
+                console.error("Failed to delete tool:", error);
+                toast.error("Не удалось удалить инструмент.");
+            }
+        } else {
+            console.error("Failed to delete tool:", error);
+            toast.error("Не удалось удалить инструмент.");
+        }
     } finally {
         setToolToDelete(null);
     }

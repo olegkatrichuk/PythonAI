@@ -46,21 +46,21 @@ export default function Footer({ lang }: { lang: string }) {
   };
 
   return (
-    <footer className="bg-gray-900 text-white mt-20 border-t border-gray-800">
+    <footer className="bg-cardBackground text-foreground mt-20 border-t border-foreground/10">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
 
           <div className="col-span-2 lg:col-span-1">
             <h2 className="text-xl font-bold mb-2">getaifind.com</h2>
-            <p className="text-gray-400 text-sm">
+            <p className="text-foreground/70 text-sm">
               {t('description')}
             </p>
           </div>
 
           <div>
             <h3 className="font-semibold mb-4">{t('tools')}</h3>
-            <ul className="space-y-2 text-gray-400">
-              <li><Link href={`/${lang}/tool`} className="hover:text-white transition-colors">{t('all_tools')}</Link></li>
+            <ul className="space-y-2 text-foreground/70">
+              <li><Link href={`/${lang}/tool`} className="hover:text-foreground transition-colors">{t('all_tools')}</Link></li>
               {/* ⬇️ 2. Заменяем старую ссылку на новый компонент ⬇️ */}
               <li><AddToolLink>{t('add_tool')}</AddToolLink></li>
             </ul>
@@ -68,25 +68,25 @@ export default function Footer({ lang }: { lang: string }) {
 
           <div>
             <h3 className="font-semibold mb-4">{t('company')}</h3>
-            <ul className="space-y-2 text-gray-400">
-              <li><Link href={`/${lang}/about`} className="hover:text-white transition-colors">{t('about_us')}</Link></li>
-              <li><Link href={`/${lang}/blog`} className="hover:text-white transition-colors">{t('blog')}</Link></li>
-              <li><Link href={`/${lang}/contacts`} className="hover:text-white transition-colors">{t('contacts')}</Link></li>
+            <ul className="space-y-2 text-foreground/70">
+              <li><Link href={`/${lang}/about`} className="hover:text-foreground transition-colors">{t('about_us')}</Link></li>
+              <li><Link href={`/${lang}/blog`} className="hover:text-foreground transition-colors">{t('blog')}</Link></li>
+              <li><Link href={`/${lang}/contacts`} className="hover:text-foreground transition-colors">{t('contacts')}</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="font-semibold mb-4">{t('legal')}</h3>
-            <ul className="space-y-2 text-gray-400">
-              <li><Link href={`/${lang}/terms`} className="hover:text-white transition-colors">{t('terms')}</Link></li>
-              <li><Link href={`/${lang}/privacy`} className="hover:text-white transition-colors">{t('privacy')}</Link></li>
+            <ul className="space-y-2 text-foreground/70">
+              <li><Link href={`/${lang}/terms`} className="hover:text-foreground transition-colors">{t('terms')}</Link></li>
+              <li><Link href={`/${lang}/privacy`} className="hover:text-foreground transition-colors">{t('privacy')}</Link></li>
             </ul>
           </div>
 
         </div>
 
-        <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row justify-between items-center">
-          <p className="text-gray-500 text-sm">
+        <div className="mt-12 pt-8 border-t border-foreground/10 flex flex-col sm:flex-row justify-between items-center">
+          <p className="text-foreground/60 text-sm">
             © {currentYear} getaifind.com. {t('copyright')}
           </p>
           <div className="flex space-x-6 mt-4 sm:mt-0">

@@ -29,7 +29,7 @@ export default function CategoryManagerPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/categories/');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories/`);
       const data: Category[] = await response.json();
       setCategories(data);
     } catch (error) {
@@ -45,7 +45,7 @@ export default function CategoryManagerPage() {
     if (!newCategoryName.trim()) return;
 
     await toast.promise(
-      fetch('http://localhost:8000/categories/', {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newCategoryName }),
@@ -72,7 +72,7 @@ export default function CategoryManagerPage() {
       if (!editingCategory.id || !editingCategory.name.trim()) return;
 
       await toast.promise(
-        fetch(`http://localhost:8000/categories/${editingCategory.id}`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories/${editingCategory.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: editingCategory.name }),
@@ -102,7 +102,7 @@ export default function CategoryManagerPage() {
     if (deletionTargetId === null) return;
 
     await toast.promise(
-        fetch(`http://localhost:8000/categories/${deletionTargetId}`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories/${deletionTargetId}`, {
             method: 'DELETE',
         }).then(response => {
             if (!response.ok) throw new Error('Ошибка при удалении');

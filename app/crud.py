@@ -2,10 +2,12 @@
 
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, desc, func
-from typing import Optional, List
+from typing import Optional
 from slugify import slugify
+from functools import lru_cache
 
 from . import models, schemas, security
+from app.database import SessionLocal
 
 
 # --- Функции для Пользователей (Users) ---
@@ -65,6 +67,53 @@ def create_category(db: Session, category: schemas.CategoryCreate):
     return db_category
 
 
+@lru_cache(maxsize=1)
+def _get_featured_tools_cached(lang: str = "ru", limit: int = 6):
+    """
+    Вспомогательная функция для получения избранных инструментов с кэшированием.
+    Если избранных нет, возвращает самые последние добавленные инструменты.
+    """
+    db: Session = SessionLocal()
+    try:
+        # Сначала ищем избранные инструменты
+        query = db.query(models.Tool).filter(models.Tool.is_featured == True)
+        tools_db = query.options(
+            joinedload(models.Tool.translations),
+            joinedload(models.Tool.reviews).joinedload(models.Review.author),  # ВОССТАНАВЛИВАЮ КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ
+            joinedload(models.Tool.category).joinedload(models.Category.translations)
+        ).limit(limit).all()
+
+        # Если избранных нет, ищем самые последние инструменты
+        if not tools_db:
+            query = db.query(models.Tool).order_by(desc(models.Tool.created_at))
+            tools_db = query.options(
+                joinedload(models.Tool.translations),
+                joinedload(models.Tool.reviews).joinedload(models.Review.author),
+                joinedload(models.Tool.category).joinedload(models.Category.translations)
+            ).limit(limit).all()
+
+        results = [_populate_tool_translation_details(tool, lang) for tool in tools_db]
+        return {"items": results, "total": len(results)}
+    finally:
+        db.close()
+
+@lru_cache(maxsize=1)
+def _get_latest_tools_cached(lang: str = "ru", limit: int = 6):
+    """Вспомогательная функция для получения последних инструментов с кэшированием."""
+    db: Session = SessionLocal()
+    try:
+        query = db.query(models.Tool).order_by(desc(models.Tool.created_at))
+        tools_db = query.options(
+            joinedload(models.Tool.translations),
+            joinedload(models.Tool.reviews).joinedload(models.Review.author),
+            joinedload(models.Tool.category).joinedload(models.Category.translations)
+        ).limit(limit).all()
+        results = [_populate_tool_translation_details(tool, lang) for tool in tools_db]
+        return {"items": results, "total": len(results)}
+    finally:
+        db.close()
+
+
 # --- Функции для Инструментов (Tools) ---
 
 def _populate_tool_translation_details(tool: models.Tool, lang: str):
@@ -75,9 +124,7 @@ def _populate_tool_translation_details(tool: models.Tool, lang: str):
     if not tool:
         return None
 
-    # ОТЛАДКА: Выводим начальные значения
-    print(
-        f"DEBUG: Processing tool '{tool.slug}'. Initial rating: {tool.average_rating}, Initial count: {tool.review_count}")
+    
 
     translation = next((t for t in tool.translations if t.language_code == lang), None)
     if not translation:
@@ -106,9 +153,7 @@ def _populate_tool_translation_details(tool: models.Tool, lang: str):
     if tool.review_count is None:
         tool.review_count = 0
 
-    # ОТЛАДКА: Выводим конечные значения
-    print(
-        f"DEBUG: Finished processing tool '{tool.slug}'. Final rating: {tool.average_rating}, Final count: {tool.review_count}")
+    
 
     return tool
 
@@ -127,7 +172,8 @@ def get_tools_with_translation(
         db: Session, lang: str = "ru", skip: int = 0, limit: int = 12,
         category_id: Optional[int] = None, q: Optional[str] = None,
         latest: Optional[bool] = None, is_featured: Optional[bool] = None,
-        pricing_model: Optional[models.PricingModel] = None, platform: Optional[str] = None):
+        pricing_model: Optional[models.PricingModel] = None, platform: Optional[str] = None,
+        sort_by: Optional[str] = None):
     """Получает список инструментов с поддержкой всех фильтров."""
     query = db.query(models.Tool)
     if q:
@@ -143,13 +189,22 @@ def get_tools_with_translation(
         query = query.filter(models.Tool.pricing_model == pricing_model)
     if platform is not None:
         query = query.filter(models.Tool.platforms.ilike(f"%{platform}%"))
-    if latest:
+    
+    if sort_by == 'rating':
+        query = query.order_by(desc(models.Tool.average_rating))
+    elif sort_by == 'review_count':
+        query = query.order_by(desc(models.Tool.review_count))
+    elif latest or sort_by == 'created_at':
         query = query.order_by(desc(models.Tool.created_at))
+    else:
+        # Сортировка по умолчанию, если ничего не указано
+        query = query.order_by(desc(models.Tool.created_at))
+
     total = query.count()
 
     tools_db = query.options(
         joinedload(models.Tool.translations),
-        joinedload(models.Tool.reviews),
+        joinedload(models.Tool.reviews).joinedload(models.Review.author),
         joinedload(models.Tool.category).joinedload(models.Category.translations)
     ).offset(skip).limit(limit).all()
     results = [_populate_tool_translation_details(tool, lang) for tool in tools_db]

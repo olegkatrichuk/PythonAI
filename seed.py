@@ -44,22 +44,25 @@ def map_tool_to_category(tool_tags: list) -> str:
 
 
 # --- Основная логика ---
-def seed_database():
+def seed_database(force: bool = False):
     db: Session = SessionLocal()
 
-    confirmation = input(
-        "Вы уверены, что хотите ОЧИСТИТЬ и перезаполнить ИНСТРУМЕНТЫ и КАТЕГОРИИ? (y/n): "
-    )
-    if confirmation.lower().strip() != 'y':
-        print("Операция отменена.")
-        db.close()
-        return
+    if not force:
+        confirmation = input(
+            "Вы уверены, что хотите ОЧИСТИТЬ и перезаполнить ИНСТРУМЕНТЫ и КАТЕГОРИИ? (y/n): "
+        )
+        if confirmation.lower().strip() != 'y':
+            print("Операция отменена.")
+            db.close()
+            return
+    else:
+        print("Запуск в принудительном режиме (--force). Пропускаем подтверждение.")
 
     try:
         # --- ИСПРАВЛЕНИЕ: Изменен порядок удаления ---
         print("Очистка старых инструментов, комментариев и категорий...")
         # Сначала удаляем зависимые записи
-        db.query(models.Comment).delete()
+        db.query(models.Review).delete()
         db.query(models.ToolTranslation).delete()
         # Теперь можно удалять основные записи
         db.query(models.Tool).delete()
@@ -160,4 +163,6 @@ def seed_database():
 if __name__ == "__main__":
     print("Проверка и создание таблиц (если необходимо)...")
     Base.metadata.create_all(bind=engine)
-    seed_database()
+    # Проверяем, есть ли флаг --force
+    force_run = '--force' in sys.argv
+    seed_database(force=force_run)

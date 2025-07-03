@@ -32,6 +32,12 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     keywords: ['AI tools', 'нейросети', 'инструменты ИИ', 'каталог нейросетей', 'AI Tools Finder'],
     alternates: {
       canonical: siteUrl,
+      languages: {
+        'en': `${process.env.NEXT_PUBLIC_SITE_URL}/en`,
+        'ru': `${process.env.NEXT_PUBLIC_SITE_URL}/ru`,
+        'uk': `${process.env.NEXT_PUBLIC_SITE_URL}/uk`,
+        'x-default': `${process.env.NEXT_PUBLIC_SITE_URL}/en`,
+      },
     },
     openGraph: {
       title,
@@ -80,27 +86,31 @@ export default async function HomePage(props: PageProps) {
 
   // ⬇️ ИЗМЕНЕНИЕ: Используем переменную окружения для URL API ⬇️
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  console.log("API URL:", apiUrl);
 
   const [featuredToolResponse, latestToolsResponse, categories] = await Promise.all([
-    fetchData(`${apiUrl}/tools/featured`, lang),
-    fetchData(`${apiUrl}/tools/latest`, lang),
-    fetchData(`${apiUrl}/categories/`, lang),
+    fetchData(`${apiUrl}/api/tools/featured`, lang),
+    fetchData(`${apiUrl}/api/tools/latest`, lang),
+    fetchData(`${apiUrl}/api/categories/`, lang),
   ]);
+
+  console.log("Featured Tools Response:", featuredToolResponse);
+  console.log("Latest Tools Response:", latestToolsResponse);
 
   return (
     <div>
       {/* Секция "Герой" */}
       <section className="text-center py-20 sm:py-24">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4 text-foreground font-jakarta">
           {t('home_title')}
         </h1>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
+        <p className="text-lg text-foreground/70 max-w-2xl mx-auto mb-8">
           {t('home_subtitle')}
         </p>
 
         <Link
           href={`/${lang}/tool`}
-          className="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-blue-700 transition-colors shadow-lg"
+          className="inline-block bg-primary text-primaryForeground font-bold py-3 px-8 rounded-lg text-lg hover:bg-primary/90 transition-colors shadow-lg"
         >
           {t('home_view_all_tools')}
         </Link>
@@ -109,7 +119,7 @@ export default async function HomePage(props: PageProps) {
       {/* Категории */}
       {categories && categories.length > 0 && (
         <section className="max-w-5xl mx-auto py-16">
-          <h2 className="text-3xl font-bold text-center mb-12">{t('home_what_to_do')}</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-foreground font-jakarta">{t('home_what_to_do')}</h2>
           <InteractiveHelper categories={categories} lang={lang} />
         </section>
       )}
@@ -117,7 +127,7 @@ export default async function HomePage(props: PageProps) {
       {/* Инструмент дня */}
       {featuredToolResponse?.items?.length > 0 && (
         <section className="max-w-4xl mx-auto py-16">
-          <h2 className="text-3xl font-bold text-center mb-12">{t('home_tool_of_the_day')}</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-foreground font-jakarta">{t('home_tool_of_the_day')}</h2>
           <FeaturedToolCard
             tool={featuredToolResponse.items[0]}
             lang={lang}
@@ -129,7 +139,7 @@ export default async function HomePage(props: PageProps) {
       {/* Новинки */}
       {latestToolsResponse?.items?.length > 0 && (
         <section className="py-16">
-          <h2 className="text-3xl font-bold text-center mb-12">{t('home_new_arrivals')}</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-foreground font-jakarta">{t('home_new_arrivals')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {latestToolsResponse.items.map((tool: ITool) => (
               <ToolCard key={tool.id} tool={tool} lang={lang} />

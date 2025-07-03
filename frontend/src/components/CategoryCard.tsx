@@ -12,37 +12,14 @@ interface ICategory {
 }
 
 // Стили
-const cardStyles: React.CSSProperties = {
-  backgroundColor: '#2a2a2e',
-  borderRadius: '12px',
-  padding: '20px',
-  textDecoration: 'none',
-  color: '#eee',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  textAlign: 'center',
-  minHeight: '100px',
-  transition: 'all 0.2s ease-in-out',
-};
-
-const cardHoverStyles: React.CSSProperties = {
-  transform: 'scale(1.05)',
-  backgroundColor: '#007bff',
-};
-
 export default function CategoryCard({ category }: { category: ICategory }) {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
     // Ссылка будет вести на страницу всех инструментов, отфильтрованную по ID этой категории
     <Link
       href={`/tools?category_id=${category.id}`}
-      style={{ ...cardStyles, ...(isHovered ? cardHoverStyles : {}) }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="flex flex-col items-center justify-center text-center bg-cardBackground rounded-xl p-5 text-foreground min-h-[100px] transition-all duration-200 ease-in-out hover:scale-105 hover:bg-primary"
     >
-      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>{category.name}</h3>
+      <h3 className="m-0 text-lg font-semibold">{category.name}</h3>
     </Link>
   );
 }

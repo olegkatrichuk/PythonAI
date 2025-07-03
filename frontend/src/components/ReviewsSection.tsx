@@ -65,7 +65,7 @@ export default function ReviewsSection({ toolSlug }: { toolSlug: string }) {
   const fetchReviews = useCallback(async () => {
     setLoading(true);
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tools/${toolSlug}/reviews/`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/${toolSlug}/reviews/`;
       const response = await axios.get(apiUrl);
       setReviews(response.data);
     } catch (error) {
@@ -83,7 +83,7 @@ export default function ReviewsSection({ toolSlug }: { toolSlug: string }) {
     if (!user || !token) { toast.error("Нужно войти в систему, чтобы оставить отзыв."); return; }
 
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tools/${toolSlug}/reviews/`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/${toolSlug}/reviews/`;
       const response = await axios.post(apiUrl, { rating, text }, { headers: { Authorization: `Bearer ${token}` } });
       setReviews(prev => [response.data, ...prev]);
       toast.success("Спасибо за ваш отзыв!");

@@ -1,6 +1,6 @@
 # app/main.py
 
-from fastapi import FastAPI, Depends, HTTPException, Header, Query
+from fastapi import FastAPI, Depends, HTTPException, Header, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -16,10 +16,11 @@ from .database import get_db, engine
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AI Finder API")
+router = APIRouter(prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"], # Ограничено для безопасности в разработке. Измените для продакшена!
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -57,7 +58,7 @@ def get_language_from_header(accept_language: Optional[str] = Header("ru")) -> s
     return "ru"
 
 
-@app.post("/users/", response_model=schemas.User, tags=["users"])
+@router.post("/users/", response_model=schemas.User, tags=["users"])
 def create_new_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
@@ -65,7 +66,7 @@ def create_new_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db=db, user=user)
 
 
-@app.post("/token", response_model=schemas.Token, tags=["users"])
+@router.post("/token", response_model=schemas.Token, tags=["users"])
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = security.authenticate_user(db, email=form_data.username, password=form_data.password)
     if not user:
@@ -76,7 +77,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get("/users/me/tools/", response_model=List[schemas.Tool], tags=["users"])
+@router.get("/users/me/tools/", response_model=List[schemas.Tool], tags=["users"])
 def read_own_tools(
         db: Session = Depends(get_db),
         current_user: models.User = Depends(get_current_user),
@@ -85,24 +86,24 @@ def read_own_tools(
     return crud.get_tools_by_owner(db=db, owner_id=current_user.id, lang=lang)
 
 
-@app.post("/categories/", response_model=schemas.Category, tags=["categories"])
+@router.post("/categories/", response_model=schemas.Category, tags=["categories"])
 def create_new_category(category: schemas.CategoryCreate, db: Session = Depends(get_db),
                         current_user: models.User = Depends(get_current_user)):
     return crud.create_category(db=db, category=category)
 
 
-@app.get("/categories/", response_model=List[schemas.Category], tags=["categories"])
+@router.get("/categories/", response_model=List[schemas.Category], tags=["categories"])
 def read_categories(db: Session = Depends(get_db), lang: str = Depends(get_language_from_header)):
     return crud.get_categories_with_translation(db, lang=lang)
 
 
-@app.post("/tools/", response_model=schemas.Tool, tags=["tools"])
+@router.post("/tools/", response_model=schemas.Tool, tags=["tools"])
 def create_new_tool(tool: schemas.ToolCreate, db: Session = Depends(get_db),
                     current_user: models.User = Depends(get_current_user)):
     return crud.create_tool(db=db, tool=tool, owner_id=current_user.id)
 
 
-@app.get("/tools/", response_model=schemas.ToolPage, tags=["tools"])
+@router.get("/tools/", response_model=schemas.ToolPage, tags=["tools"])
 def read_tools(
         db: Session = Depends(get_db),
         lang: str = Depends(get_language_from_header),
@@ -111,38 +112,37 @@ def read_tools(
         page: int = 1,
         limit: int = 12,
         pricing_model: Optional[models.PricingModel] = None,
-        platform: Optional[str] = None
-        # ПАРАМЕТР sort_by УДАЛЕН
+        platform: Optional[str] = None,
+        sort_by: Optional[str] = None
 ):
     skip = (page - 1) * limit
     tools_page = crud.get_tools_with_translation(
         db=db, lang=lang, skip=skip, limit=limit, category_id=category_id, q=q,
-        pricing_model=pricing_model, platform=platform
-        # ПАРАМЕТР sort_by УДАЛЕН
+        pricing_model=pricing_model, platform=platform, sort_by=sort_by
     )
     return tools_page
 
 
-@app.get("/tools/featured", response_model=schemas.ToolPage, tags=["tools"])
+@router.get("/tools/featured", response_model=schemas.ToolPage, tags=["tools"])
 def read_featured_tools(
         lang: str = Depends(get_language_from_header),
         db: Session = Depends(get_db)
 ):
-    tools_page = crud.get_tools_with_translation(db=db, lang=lang, is_featured=True, limit=6)
+    tools_page = crud._get_featured_tools_cached(lang=lang, limit=6)
     return tools_page
 
 
-@app.get("/tools/latest", response_model=schemas.ToolPage, tags=["tools"])
+@router.get("/tools/latest", response_model=schemas.ToolPage, tags=["tools"])
 def read_latest_tools(
         lang: str = Depends(get_language_from_header),
         db: Session = Depends(get_db)
 ):
     # Возвращаем старую логику с параметром 'latest'
-    tools_page = crud.get_tools_with_translation(db=db, lang=lang, latest=True, limit=6)
+    tools_page = crud._get_latest_tools_cached(lang=lang, limit=6)
     return tools_page
 
 
-@app.get("/tools/{tool_slug}", response_model=schemas.Tool, tags=["tools"])
+@router.get("/tools/{tool_slug}", response_model=schemas.Tool, tags=["tools"])
 def read_tool_by_slug(tool_slug: str, db: Session = Depends(get_db), lang: str = Depends(get_language_from_header)):
     db_tool = crud.get_tool_by_slug_with_translation(db, slug=tool_slug, lang=lang)
     if db_tool is None:
@@ -150,12 +150,12 @@ def read_tool_by_slug(tool_slug: str, db: Session = Depends(get_db), lang: str =
     return db_tool
 
 
-@app.get("/tools/{tool_slug}/reviews", response_model=List[schemas.Review], tags=["reviews"])
+@router.get("/tools/{tool_slug}/reviews", response_model=List[schemas.Review], tags=["reviews"])
 def read_tool_reviews(tool_slug: str, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_reviews_by_tool_slug(db, slug=tool_slug, skip=skip, limit=limit)
 
 
-@app.post("/tools/{tool_slug}/reviews", response_model=schemas.Review, tags=["reviews"])
+@router.post("/tools/{tool_slug}/reviews", response_model=schemas.Review, tags=["reviews"])
 def create_new_review_for_tool(
         tool_slug: str,
         review: schemas.ReviewCreate,
@@ -172,3 +172,5 @@ def create_new_review_for_tool(
 @app.get("/", tags=["root"])
 def read_root():
     return {"message": "AI Finder API is running"}
+
+app.include_router(router)

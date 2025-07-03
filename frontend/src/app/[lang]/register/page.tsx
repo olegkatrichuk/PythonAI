@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { getTranslations } from '@/lib/translations';
+import axios, { isAxiosError } from 'axios';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -54,35 +55,31 @@ export default function RegisterPage() {
     event.preventDefault();
 
     // --- 3. Вызываем валидацию перед отправкой ---
-    const isValid = validateForm();
-    if (!isValid) {
+    if (!validateForm()) {
       return; // Прерываем отправку, если форма невалидна
     }
 
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/users/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Произошла ошибка при регистрации.');
-      }
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/users/`;
+      await axios.post(apiUrl, { email, password });
 
       toast.success('Регистрация прошла успешно! Теперь вы можете войти.');
       router.push(`/${lang}/login`);
+    } catch (error) {
+      if (isAxiosError(error) && error.response) {
+        const errorData = error.response.data;
+        const errorMessage = errorData?.detail || 'Произошла ошибка при регистрации.';
 
-    } catch (error: any) {
-      console.error(error);
-      // Если ошибка с сервера касается конкретного поля, можно её отобразить
-      if (error.message.includes('email')) {
-         setErrors(prev => ({...prev, email: error.message}));
+        if (typeof errorMessage === 'string' && errorMessage.toLowerCase().includes('email')) {
+          setErrors(prev => ({ ...prev, email: errorMessage }));
+        } else {
+          toast.error(errorMessage);
+        }
       } else {
-         toast.error(error.message || 'Не удалось зарегистрироваться.');
+        console.error('Ошибка регистрации:', error);
+        toast.error('Не удалось связаться с сервером. Проверьте ваше интернет-соединение.');
       }
     } finally {
       setLoading(false);

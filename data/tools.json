@@ -128,7 +128,7 @@
   {
     "name": "Synthesia",
     "url": "https://www.synthesia.io/",
-    "description": "Создание видео с AI-аватарами, которые говорят ваш текст на разных языках.",
+    "description": "Создание видео с AI-аватарами, которые говорят ваш текст ��а разных языках.",
     "tags": ["Video", "Avatars"],
     "is_featured": false,
     "pricing_model": "paid",
@@ -182,7 +182,7 @@
   {
     "name": "Krita",
     "url": "https://krita.org/",
-    "description": "Бесплатный и открытый редактор растровой графики с поддержкой AI-плагинов для генерации изображений.",
+    "description": "Бесплатный и открытый редактор растровой графики с поддержкой AI-плагинов для генерации и��ображений.",
     "tags": ["Image Generation", "Art", "Open Source"],
     "is_featured": false,
     "pricing_model": "free",
@@ -245,7 +245,7 @@
   {
     "name": "Jasper",
     "url": "https://www.jasper.ai/",
-    "description": "Продвинутый AI-копирайтер для создания длинных статей, постов в блог и маркетинговых материалов.",
+    "description": "Продвинутый AI-копирайтер для создания длинны�� статей, постов в блог и маркетинговых материалов.",
     "tags": ["Text Generation", "Copywriting"],
     "is_featured": false,
     "pricing_model": "paid",
@@ -272,7 +272,7 @@
   {
     "name": "DeepL",
     "url": "https://www.deepl.com/translator",
-    "description": "Один из самых точных онлайн-переводчиков, использующий нейронные сети для естественного перевода.",
+    "description": "Один из самых точных онлайн-переводчиков, использующий нейронные сети для естестве��ного перевода.",
     "tags": ["Text Generation", "Writing"],
     "is_featured": false,
     "pricing_model": "freemium",
@@ -461,7 +461,7 @@
   {
     "name": "TensorArt",
     "url": "https://tensor.art/",
-    "description": "Бесплатный онлайн-генератор изображений на основе Stable Diffusion с доступом к сотням моделей.",
+    "description": "Бесплатный онлайн-генератор изображений на основе Stable Diffusion с до��тупом к сотням моделей.",
     "tags": ["Image Generation"],
     "is_featured": false,
     "pricing_model": "free",
@@ -722,7 +722,7 @@
   {
     "name": "HitPaw",
     "url": "https://www.hitpaw.com/",
-    "description": "Набор инструментов для редактирования фото и видео, включая улучшение качества, удаление водяных знаков и др.",
+    "description": "Набор инстру��ентов для редактирования фото и видео, включая улучшение качества, удаление водяных знаков и др.",
     "tags": ["Image Generation", "Video"],
     "is_featured": false,
     "pricing_model": "paid",
@@ -749,7 +749,7 @@
   {
     "name": "Durable",
     "url": "https://durable.co/",
-    "description": "AI-конструктор, который создает сайт с текстом, изображениями и контактной формой за 30 секунд.",
+    "description": "AI-конструктор, который создает с��йт с текстом, изображениями и контактной формой за 30 секунд.",
     "tags": ["Business & Analytics", "Website"],
     "is_featured": false,
     "pricing_model": "trial",
@@ -763,5 +763,50 @@
     "is_featured": false,
     "pricing_model": "freemium",
     "platforms": ["Web"]
+  },
+  {
+    "name": "Claude",
+    "url": "https://www.anthropic.com/claude",
+    "description": "A family of foundational AI models that can be used in a variety of applications. Known for its large context window and strong performance in a wide range of tasks.",
+    "tags": ["text", "writing", "llm"],
+    "pricing_model": "freemium",
+    "platforms": ["Web", "API"],
+    "is_featured": false
+  },
+  {
+    "name": "Canva Magic Studio",
+    "url": "https://www.canva.com/magic-studio/",
+    "description": "A suite of AI-powered features within Canva that can help you design, write, and edit with ease. Includes Magic Design, Magic Write, and more.",
+    "tags": ["design", "image", "video", "writing"],
+    "pricing_model": "freemium",
+    "platforms": ["Web"],
+    "is_featured": true
+  },
+  {
+    "name": "Zapier Agents",
+    "url": "https://zapier.com/ai/agents",
+    "description": "An experimental AI tool that can automate tasks across thousands of apps. You can create AI agents to handle complex workflows through a simple chat interface.",
+    "tags": ["productivity", "automation", "business"],
+    "pricing_model": "trial",
+    "platforms": ["Web", "API"],
+    "is_featured": false
+  },
+  {
+    "name": "Notion Q&A",
+    "url": "https://www.notion.so/product/ai",
+    "description": "An AI feature in Notion that allows you to ask questions about your workspace content and get intelligent answers. It can help you find information, summarize documents, and more.",
+    "tags": ["productivity", "notes", "assistant"],
+    "pricing_model": "freemium",
+    "platforms": ["Web", "Windows", "macOS", "iOS", "Android"],
+    "is_featured": true
+  },
+  {
+    "name": "Tabnine",
+    "url": "https://www.tabnine.com/",
+    "description": "An AI code assistant that provides real-time code completions in your IDE. It supports a wide range of languages and editors.",
+    "tags": ["code", "developer", "programming"],
+    "pricing_model": "freemium",
+    "platforms": ["Windows", "macOS"],
+    "is_featured": false
   }
 ]
