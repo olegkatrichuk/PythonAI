@@ -9,10 +9,10 @@ import StarRating from '@/components/StarRating';
 import ReviewsSection from '@/components/ReviewsSection';
 
 type PageProps = {
-  params: Promise<{
+  params: {
     lang: string;
     slug: string;
-  }>;
+  };
 };
 
 const PRICING_INFO = {
@@ -39,8 +39,7 @@ async function getToolBySlug(slug: string, lang: string): Promise<ITool | null> 
 }
 
 // 🔎 Генерация SEO-метаданных (возвращаем к простому виду)
-export async function generateMetadata(props: PageProps): Promise<Metadata> {
-  const params = await props.params;
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang, slug } = params;
   const tool = await getToolBySlug(slug, lang);
 
@@ -74,13 +73,11 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
         'x-default': `${process.env.NEXT_PUBLIC_SITE_URL}/en/tool/${slug}`,
       },
     },
-    
   };
 }
 
 // 🧠 Основной компонент страницы (возвращаем к простому виду)
-export default async function ToolDetailPage(props: PageProps) {
-  const params = await props.params;
+export default async function ToolDetailPage({ params }: PageProps) {
   const { slug, lang } = params;
   const tool = await getToolBySlug(slug, lang);
 

@@ -9,10 +9,10 @@ import ToolList from '@/components/ToolList';
 import CategoryFilter from '@/components/CategoryFilter';
 import SearchBar from '@/components/SearchBar';
 
-// ✅ Определяем простой и понятный тип для пропсов
+// Определяем простой и понятный тип для пропсов
 type ToolsPageProps = {
-    params: Promise<{ lang: string }>;
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+    params: { lang: string };
+    searchParams: { [key: string]: string | string[] | undefined };
 };
 
 interface ApiResponse {
@@ -20,7 +20,7 @@ interface ApiResponse {
     total: number;
 }
 
-// ✅ Функция для получения данных (она у вас уже была правильной)
+// Функция для получения данных (она у вас уже была правильной)
 async function getTools(lang: string, searchParams: URLSearchParams): Promise<ApiResponse> {
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/?${searchParams.toString()}`;
 
@@ -48,16 +48,11 @@ async function getTools(lang: string, searchParams: URLSearchParams): Promise<Ap
     }
 }
 
-// ✅ Возвращаем метаданные к простому виду для Next.js 14
-export async function generateMetadata(props: ToolsPageProps): Promise<Metadata> {
-    const searchParams = await props.searchParams;
-    const params = await props.params;
+// Возвращаем метаданные к простому виду для Next.js 14
+export async function generateMetadata({ params }: ToolsPageProps): Promise<Metadata> {
     const { lang } = params;
     const t = getTranslations(lang);
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-
-    // Преобразуем searchParams в стандартный URLSearchParams
-    const queryParams = new URLSearchParams(searchParams as any);
 
     // ... остальная логика для метаданных остается без изменений ...
 
@@ -71,15 +66,22 @@ export async function generateMetadata(props: ToolsPageProps): Promise<Metadata>
 }
 
 
-// ✅ Возвращаем компонент страницы к простому виду для Next.js 14
-export default async function ToolsPage(props: ToolsPageProps) {
-    const searchParams = await props.searchParams;
-    const params = await props.params;
+// Возвращаем компонент страницы к простому виду для Next.js 14
+export default async function ToolsPage({ params, searchParams }: ToolsPageProps) {
     const { lang } = params;
     const t = getTranslations(lang);
 
     // Преобразуем searchParams в стандартный URLSearchParams
-    const queryParams = new URLSearchParams(searchParams as any);
+    const queryParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(searchParams)) {
+        if (Array.isArray(value)) {
+            for (const v of value) {
+                queryParams.append(key, v);
+            }
+        } else {
+            queryParams.set(key, value);
+        }
+    }
 
     const { items: tools, total } = await getTools(lang, queryParams);
     const page = Number(queryParams.get('page') ?? '1');

@@ -11,14 +11,13 @@ import { getTranslations } from '@/lib/translations';
 
 // ✅ Тип параметров
 type PageProps = {
-  params: Promise<{
+  params: {
     lang: string;
-  }>;
+  };
 };
 
 // ✅ Метаданные для SEO
-export async function generateMetadata(props: PageProps): Promise<Metadata> {
-  const params = await props.params;
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang } = params;
   const t = getTranslations(lang);
 
@@ -79,8 +78,7 @@ async function fetchData(url: string, lang: string) {
 }
 
 // ✅ Главная страница
-export default async function HomePage(props: PageProps) {
-  const params = await props.params;
+export default async function HomePage({ params }: PageProps) {
   const { lang } = params;
   const t = getTranslations(lang);
 
