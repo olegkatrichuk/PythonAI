@@ -45,6 +45,20 @@ export default function ToolCard({ tool, lang }: ToolCardProps) {
           {tool.description}
         </p>
 
+        {/* Display Platforms */}
+        {tool.platforms && tool.platforms.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {tool.platforms.map((platform, index) => (
+              <span
+                key={index}
+                className="bg-secondary/20 text-secondary-foreground text-xs font-medium px-2 py-0.5 rounded-full"
+              >
+                {platform}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Убедимся, что category и category.name существуют, чтобы избежать ошибок */}
         {tool.category && tool.category.name && (
           <div className="mt-auto">

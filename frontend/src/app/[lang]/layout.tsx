@@ -1,7 +1,11 @@
 // src/app/[lang]/layout.tsx
 
 import type { Metadata } from "next";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "../globals.css";
+
+const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin", "cyrillic"], variable: "--font-jakarta" });
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
@@ -52,7 +56,7 @@ export default async function RootLayout({ children, params: paramsPromise }: Ro
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
       </head>
-      <body className="bg-background text-foreground">
+      <body className={`${inter.variable} ${jakarta.variable} font-sans bg-background text-foreground`}>
         <Providers>
           <AuthProvider>
             <Toaster position="bottom-right" toastOptions={{ style: { background: '#334155', color: '#f1f5f9' } }} />

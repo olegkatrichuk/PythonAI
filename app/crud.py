@@ -2,6 +2,8 @@
 
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, desc, func
+import json
+import json
 from typing import Optional
 from slugify import slugify
 from functools import lru_cache
@@ -39,19 +41,27 @@ def get_tools_by_owner(db: Session, owner_id: int, lang: str = "ru"):
 
 # --- Функции для Категорий (Categories) ---
 
+@lru_cache(maxsize=128)
+def _get_categories_cached(lang: str = "ru", skip: int = 0, limit: int = 100):
+    db: Session = SessionLocal()
+    try:
+        categories = db.query(models.Category).options(
+            joinedload(models.Category.translations)
+        ).offset(skip).limit(limit).all()
+        results = []
+        for cat in categories:
+            translation = next((t for t in cat.translations if t.language_code == lang), None)
+            if not translation:
+                translation = next((t for t in cat.translations if t.language_code == 'ru'), None)
+            if translation:
+                results.append(schemas.Category(id=cat.id, name=translation.name))
+        return results
+    finally:
+        db.close()
+
 def get_categories_with_translation(db: Session, lang: str = "ru", skip: int = 0, limit: int = 100):
     """Получает список категорий с переводом на указанный язык."""
-    categories = db.query(models.Category).options(
-        joinedload(models.Category.translations)
-    ).offset(skip).limit(limit).all()
-    results = []
-    for cat in categories:
-        translation = next((t for t in cat.translations if t.language_code == lang), None)
-        if not translation:
-            translation = next((t for t in cat.translations if t.language_code == 'ru'), None)
-        if translation:
-            results.append(schemas.Category(id=cat.id, name=translation.name))
-    return results
+    return _get_categories_cached(lang=lang, skip=skip, limit=limit)
 
 
 def create_category(db: Session, category: schemas.CategoryCreate):
@@ -144,8 +154,19 @@ def _populate_tool_translation_details(tool: models.Tool, lang: str):
         tool.category.name = category_name
 
     if tool.platforms and isinstance(tool.platforms, str):
-        tool.platforms = tool.platforms.split(',')
+        try:
+            # Attempt to parse as JSON array
+            tool.platforms = json.loads(tool.platforms)
+        except json.JSONDecodeError:
+            # Fallback to splitting by comma if not valid JSON
+            tool.platforms = [p.strip() for p in tool.platforms.split(',') if p.strip()]
     elif not tool.platforms:
+        tool.platforms = []
+    # Ensure it's always a list
+    if not isinstance(tool.platforms, list):
+        tool.platforms = []
+    # Ensure it's always a list
+    if not isinstance(tool.platforms, list):
         tool.platforms = []
 
     # Гарантируем, что числовые поля не будут None
@@ -159,14 +180,22 @@ def _populate_tool_translation_details(tool: models.Tool, lang: str):
     return tool
 
 
+@lru_cache(maxsize=128)
+def _get_tool_by_slug_cached(slug: str, lang: str = "ru"):
+    db: Session = SessionLocal()
+    try:
+        tool = db.query(models.Tool).filter(models.Tool.slug == slug).options(
+            joinedload(models.Tool.translations),
+            joinedload(models.Tool.reviews).joinedload(models.Review.author),
+            joinedload(models.Tool.category).joinedload(models.Category.translations)
+        ).first()
+        return _populate_tool_translation_details(tool, lang)
+    finally:
+        db.close()
+
 def get_tool_by_slug_with_translation(db: Session, slug: str, lang: str = "ru"):
     """Получает один инструмент по его slug со всеми переводами."""
-    tool = db.query(models.Tool).filter(models.Tool.slug == slug).options(
-        joinedload(models.Tool.translations),
-        joinedload(models.Tool.reviews).joinedload(models.Review.author),
-        joinedload(models.Tool.category).joinedload(models.Category.translations)
-    ).first()
-    return _populate_tool_translation_details(tool, lang)
+    return _get_tool_by_slug_cached(slug=slug, lang=lang)
 
 
 def get_tools_with_translation(
@@ -225,7 +254,7 @@ def create_tool(db: Session, tool: schemas.ToolCreate, owner_id: int):
         unique_slug = f"{base_slug}-{counter}"
         counter += 1
     db_tool_data = tool.model_dump(exclude={"translations", "platforms"})
-    platforms_str = ",".join(tool.platforms) if tool.platforms else None
+    platforms_str = json.dumps(tool.platforms) if tool.platforms else None
     db_tool = models.Tool(**db_tool_data, owner_id=owner_id, slug=unique_slug, platforms=platforms_str)
     db.add(db_tool)
     db.flush()

@@ -20,8 +20,8 @@ const config: Config = {
         primaryForeground: 'hsl(var(--primary-foreground))',
       },
       fontFamily: {
-        inter: ['Inter', 'sans-serif'],
-        jakarta: ['"Plus Jakarta Sans"', 'sans-serif'],
+        inter: ["var(--font-inter)", "sans-serif"],
+        jakarta: ["var(--font-jakarta)", "sans-serif"],
       },
     },
   },
