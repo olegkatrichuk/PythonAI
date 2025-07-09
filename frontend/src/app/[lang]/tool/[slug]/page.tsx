@@ -92,22 +92,20 @@ export default async function ToolDetailPage({ params: paramsPromise }: PageProp
     ? PRICING_INFO[tool.pricing_model.toLowerCase() as keyof typeof PRICING_INFO]
     : null;
 
-  const productSchema = {
+  const softwareApplicationSchema = {
     "@context": "https://schema.org",
-    "@type": "Product",
+    "@type": "SoftwareApplication",
     "name": tool.name,
     "description": tool.description,
     "image": tool.icon_url || `${process.env.NEXT_PUBLIC_SITE_URL}/og-image.png`,
     "url": `${process.env.NEXT_PUBLIC_SITE_URL}/${lang}/tool/${tool.slug}`,
-    "brand": {
-      "@type": "Brand",
-      "name": tool.name
-    },
+    "applicationCategory": "DeveloperApplication", // Or a more specific category if available
+    "operatingSystem": tool.platforms ? tool.platforms.join(", ") : "Any",
     "offers": {
       "@type": "Offer",
       "url": tool.url,
       "priceCurrency": "USD",
-      "price": tool.pricing_model === "free" || tool.pricing_model === "freemium" ? "0" : "0",
+      "price": tool.pricing_model === "free" || tool.pricing_model === "freemium" ? "0" : "0", // Adjust based on actual pricing
       "availability": "https://schema.org/InStock"
     },
     "aggregateRating": {
@@ -115,14 +113,27 @@ export default async function ToolDetailPage({ params: paramsPromise }: PageProp
       "ratingValue": tool.average_rating.toFixed(1),
       "reviewCount": tool.review_count
     },
-    "review": []
+    "review": tool.reviews.map(review => ({
+      "@type": "Review",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": review.rating,
+        "bestRating": 5,
+        "worstRating": 1
+      },
+      "author": {
+        "@type": "Person",
+        "name": review.author.email // Or a more user-friendly name if available
+      },
+      "reviewBody": review.text
+    }))
   };
 
   return (
     <div className="max-w-4xl mx-auto py-12 px-4">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema) }}
       />
       <div className="grid md:grid-cols-3 gap-8 md:gap-12">
         <aside className="md:col-span-1 flex flex-col items-center md:items-start">
