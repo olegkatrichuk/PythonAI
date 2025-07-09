@@ -84,6 +84,8 @@ class ToolTranslation(Base):
     language_code = Column(String(2), nullable=False)
     name = Column(String, index=True)
     description = Column(String)
+    short_description = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
     tool = relationship("Tool", back_populates="translations")
 
 

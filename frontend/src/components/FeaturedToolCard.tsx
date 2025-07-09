@@ -34,7 +34,7 @@ export default function FeaturedToolCard({ tool, lang, buttonText }: FeaturedToo
 
       {/* Описание */}
       <p className="text-lg text-foreground/70 max-w-xl mx-auto mb-6">
-        {tool.description}
+        {tool.short_description || tool.description}
       </p>
 
       {/* --- ИСПРАВЛЕНИЕ ЗДЕСЬ --- */}

@@ -71,7 +71,7 @@ pytz==2025.2
 pyunormalize==16.0.0
 PyYAML==6.0.2
 regex==2024.11.6
-requests==2.32.3
+requests==2.32.4
 rich==14.0.0
 rich-toolkit==0.14.7
 rlp==4.1.0
@@ -93,7 +93,7 @@ typing-inspection==0.4.1
 typing_extensions==4.14.0
 tzdata==2025.2
 ujson==5.10.0
-urllib3==2.2.3
+urllib3==2.5.0
 uvicorn==0.34.3
 uvloop==0.21.0
 watchfiles==1.1.0

@@ -92,6 +92,7 @@ class Category(BaseModel):
 class ToolTranslationBase(BaseModel):
     name: str
     description: Optional[str] = None
+    short_description: Optional[str] = None
 
 
 class ToolTranslationCreate(ToolTranslationBase):
@@ -109,6 +110,7 @@ class Tool(BaseModel):
 
     name: str
     description: Optional[str] = None
+    short_description: Optional[str] = None
     category: Category
 
     # --- ИЗМЕНЕНИЕ ЗДЕСЬ ---

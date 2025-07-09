@@ -26,15 +26,15 @@ def upgrade() -> None:
     pricing_enum.create(op.get_bind(), checkfirst=True)
 
     # 2. Добавляем колонку с этим ENUM
-    op.add_column('tools', sa.Column(
-        'pricing_model',
-        pricing_enum,
-        nullable=False,
-        server_default='FREE'
-    ))
+    # op.add_column('tools', sa.Column(
+    #     'pricing_model',
+    #     pricing_enum,
+    #     nullable=False,
+    #     server_default='FREE'
+    # ))
 
     # 3. Добавляем строковую колонку
-    op.add_column('tools', sa.Column('platforms', sa.String(), nullable=True))
+    # op.add_column('tools', sa.Column('platforms', sa.String(), nullable=True))
 
 
 def downgrade() -> None:

@@ -132,6 +132,7 @@ def _populate_tool_translation_details(tool: models.Tool, lang: str):
     if translation:
         tool.name = translation.name
         tool.description = translation.description
+        tool.short_description = translation.short_description
 
     if tool.category and tool.category.translations:
         category_name = "Unnamed Category"
@@ -235,6 +236,31 @@ def create_tool(db: Session, tool: schemas.ToolCreate, owner_id: int):
     db.commit()
     db.refresh(db_tool)
     return db_tool
+
+
+def update_or_create_tool_translation(db: Session, tool_id: int, language_code: str, name: str, description: str, short_description: Optional[str] = None):
+    """Обновляет или создает перевод инструмента."""
+    db_translation = db.query(models.ToolTranslation).filter(
+        models.ToolTranslation.tool_id == tool_id,
+        models.ToolTranslation.language_code == language_code
+    ).first()
+
+    if db_translation:
+        db_translation.name = name
+        db_translation.description = description
+        db_translation.short_description = short_description
+    else:
+        db_translation = models.ToolTranslation(
+            tool_id=tool_id,
+            language_code=language_code,
+            name=name,
+            description=description,
+            short_description=short_description
+        )
+        db.add(db_translation)
+    db.commit()
+    db.refresh(db_translation)
+    return db_translation
 
 
 # --- Функции для Отзывов (Reviews) ---

@@ -1,14 +1,19 @@
-# Указываем версию синтаксиса
-version: '3.8'
+version: "3.9"
 
-# Описываем наши сервисы (в данном случае только один - база данных)
 services:
-  db:
-    image: postgres:15      # Используем официальный образ PostgreSQL версии 15
-    container_name: aifinder_db # Название нашего контейнера для удобства
-    environment:              # Переменные окружения для настройки базы данных
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: aifinder_db
+  pg:
+    image: postgres:17
+    container_name: aifinder_pg17
     ports:
-      - "5432:5432"           # Пробрасываем порт с контейнера на наш компьютер
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: qweQWE123
+      POSTGRES_DB: aifinder_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+
+    # Пробрасываем порт с контейнера на наш компьютер

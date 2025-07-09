@@ -24,6 +24,7 @@ export interface ITool {
   id: number;
   name: string;
   description: string;
+  short_description?: string;
   url: string;
   slug: string;
   icon_url?: string;

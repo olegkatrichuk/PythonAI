@@ -39,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // ✅ 2. Генерируем URL для динамических страниц (инструменты)
   let toolUrls: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch(`${API_URL}/tools/?limit=1000`);
+    const res = await fetch(`${API_URL}/api/tools/?limit=1000`);
     if (res.ok) {
       const toolsResponse: ToolsResponse = await res.json();
       if (toolsResponse && Array.isArray(toolsResponse.items)) {
@@ -53,7 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
   } catch (error) {
-    console.error('Sitemap: Failed to fetch tools', error);
+    // Silently ignore the error
   }
 
   // ✅ 3. Генерируем URL для статей блога (пока что одна)
