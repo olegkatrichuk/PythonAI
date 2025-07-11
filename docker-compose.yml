@@ -1,6 +1,7 @@
 version: "3.9"
 
 services:
+  # PostgreSQL Database
   pg:
     image: postgres:17
     container_name: aifinder_pg17
@@ -12,8 +13,58 @@ services:
       POSTGRES_DB: aifinder_db
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - aifinder-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: aifinder_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - aifinder-network
+
+  # FastAPI Backend
+  backend:
+    build: .
+    container_name: aifinder_backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - pg
+      - redis
+    environment:
+      DATABASE_URL: postgresql://postgres:qweQWE123@pg:5432/aifinder_db
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: 09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      GEMINI_API_KEY: "${GEMINI_API_KEY}"
+    networks:
+      - aifinder-network
+
+  # Next.js Frontend
+  frontend:
+    build: ./frontend
+    container_name: aifinder_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NODE_ENV: production
+    networks:
+      - aifinder-network
 
 volumes:
   pgdata:
+  redis_data:
 
-    # Пробрасываем порт с контейнера на наш компьютер
+networks:
+  aifinder-network:
+    driver: bridge

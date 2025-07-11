@@ -4,6 +4,7 @@
 export interface ICategory {
   id: number;
   name: string;
+  slug: string;
 }
 
 // --- НОВЫЙ ИНТЕРФЕЙС ДЛЯ ОТЗЫВОВ ---
@@ -16,6 +17,7 @@ export interface IReview {
   author: {
     id: number;
     email: string;
+    username?: string;
   };
 }
 

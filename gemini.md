@@ -77,3 +77,5 @@ To get the project up and running, follow these steps:
 *   The project uses Alembic for database migrations. To create a new migration, use the `alembic revision` command.
 *   The frontend uses `next-i18next` for internationalization. Translations are located in the `public/locales` directory.
 *   The project includes several scripts for seeding the database with initial data. These can be found in the root directory (e.g., `seed_users.py`, `seed_tools.py`).
+
+Use python rules from @.windsurfer

@@ -39,44 +39,61 @@ async function getToolBySlug(slug: string, lang: string): Promise<ITool | null> 
   }
 }
 
-// 🔎 Генерация SEO-метаданных (возвращаем к простому виду)
+// 🔎 Генерация SEO-метаданных (улучшенная версия)
 export async function generateMetadata({ params: paramsPromise }: PageProps): Promise<Metadata> {
   const params = await paramsPromise;
   const { lang, slug } = params;
   const tool = await getToolBySlug(slug, lang);
 
   if (!tool) {
-    return { title: 'Инструмент не найден' };
+    return {
+      title: 'Инструмент не найден',
+      description: 'К сожалению, запрашиваемый инструмент не найден.',
+    };
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const pageUrl = `${siteUrl}/${lang}/tool/${slug}`;
   const pageTitle = `${tool.name} | AI Tools Finder`;
-  const pageDescription = tool.description
-    ? `${tool.description.substring(0, 155)}...`
-    : `Узнайте все о ${tool.name}: возможности, цены и отзывы на AI Tools Finder.`;
+  // Используем short_description если оно есть, иначе обрезаем длинное
+  const pageDescription = tool.short_description
+    ? tool.short_description
+    : tool.description
+      ? `${tool.description.substring(0, 155)}...`
+      : `Узнайте все о ${tool.name}: возможности, цены и отзывы на AI Tools Finder.`;
+  const imageUrl = tool.icon_url || `${siteUrl}/og-image.png`; // Резервное изображение
 
   return {
     title: pageTitle,
     description: pageDescription,
+    alternates: {
+      canonical: pageUrl,
+      languages: {
+        'en': `${siteUrl}/en/tool/${slug}`,
+        'ru': `${siteUrl}/ru/tool/${slug}`,
+        'uk': `${siteUrl}/uk/tool/${slug}`,
+        'x-default': `${siteUrl}/en/tool/${slug}`,
+      },
+    },
     openGraph: {
       title: pageTitle,
       description: pageDescription,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/${lang}/tool/${slug}`,
+      url: pageUrl,
       siteName: 'AI Tools Finder',
-      images: tool.icon_url ? [{ url: tool.icon_url }] : [],
+      images: [{ url: imageUrl, width: 800, height: 600, alt: `${tool.name} icon` }],
       locale: lang,
       type: 'website',
     },
-    alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/${lang}/tool/${slug}`,
-      languages: {
-        'en': `${process.env.NEXT_PUBLIC_SITE_URL}/en/tool/${slug}`,
-        'ru': `${process.env.NEXT_PUBLIC_SITE_URL}/ru/tool/${slug}`,
-        'uk': `${process.env.NEXT_PUBLIC_SITE_URL}/uk/tool/${slug}`,
-        'x-default': `${process.env.NEXT_PUBLIC_SITE_URL}/en/tool/${slug}`,
-      },
+    twitter: {
+      card: 'summary_large_image',
+      title: pageTitle,
+      description: pageDescription,
+      images: [imageUrl],
+      creator: '@ilikenewcoin',
     },
   };
 }
+
 
 // 🧠 Основной компонент страницы (возвращаем к простому виду)
 export default async function ToolDetailPage({ params: paramsPromise }: PageProps) {
@@ -92,40 +109,62 @@ export default async function ToolDetailPage({ params: paramsPromise }: PageProp
     ? PRICING_INFO[tool.pricing_model.toLowerCase() as keyof typeof PRICING_INFO]
     : null;
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const imageUrl = tool.icon_url || `${siteUrl}/og-image.png`;
+
+  // Логика для определения цены в схеме
+  const getPriceSpecification = () => {
+    switch (tool.pricing_model) {
+      case 'free':
+        return { price: '0.00', priceCurrency: 'USD' };
+      case 'freemium':
+        return { price: '0.00', priceCurrency: 'USD' }; // Основная версия бесплатна
+      case 'paid':
+        return { price: '0.01', priceCurrency: 'USD' }; // Указываем минимальную цену, т.к. точная неизвестна
+      case 'trial':
+         return { price: '0.00', priceCurrency: 'USD' }; // Триал бесплатный
+      default:
+        return { price: '0.00', priceCurrency: 'USD' };
+    }
+  };
+
   const softwareApplicationSchema = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": tool.name,
-    "description": tool.description,
-    "image": tool.icon_url || `${process.env.NEXT_PUBLIC_SITE_URL}/og-image.png`,
-    "url": `${process.env.NEXT_PUBLIC_SITE_URL}/${lang}/tool/${tool.slug}`,
-    "applicationCategory": "DeveloperApplication", // Or a more specific category if available
-    "operatingSystem": tool.platforms ? tool.platforms.join(", ") : "Any",
+    "description": tool.description, // Используем полное описание для schema
+    "image": imageUrl,
+    "url": `${siteUrl}/${lang}/tool/${tool.slug}`,
+    "applicationCategory": tool.category ? tool.category.name : "SoftwareApplication",
+    "operatingSystem": tool.platforms ? tool.platforms.join(", ") : "Web-Based",
     "offers": {
       "@type": "Offer",
       "url": tool.url,
-      "priceCurrency": "USD",
-      "price": tool.pricing_model === "free" || tool.pricing_model === "freemium" ? "0" : "0", // Adjust based on actual pricing
+      ...getPriceSpecification(),
       "availability": "https://schema.org/InStock"
     },
     "aggregateRating": {
       "@type": "AggregateRating",
-      "ratingValue": tool.average_rating.toFixed(1),
+      "ratingValue": tool.average_rating ? tool.average_rating.toFixed(1) : "0",
+      "ratingCount": tool.review_count, // Используем ratingCount, это более современное поле
       "reviewCount": tool.review_count
     },
-    "review": tool.reviews.map(review => ({
+    // Отображаем только отзывы с текстом
+    "review": tool.reviews.filter(r => r.text).map(review => ({
       "@type": "Review",
       "reviewRating": {
         "@type": "Rating",
         "ratingValue": review.rating,
-        "bestRating": 5,
-        "worstRating": 1
+        "bestRating": "5",
+        "worstRating": "1"
       },
       "author": {
         "@type": "Person",
-        "name": review.author.email // Or a more user-friendly name if available
+        // Предполагаем, что у автора есть поле `username`
+        "name": review.author.username || review.author.email || 'Anonymous User'
       },
-      "reviewBody": review.text
+      "reviewBody": review.text,
+      "datePublished": review.created_at, // Добавляем дату публикации отзыва
     }))
   };
 

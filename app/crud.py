@@ -3,13 +3,19 @@
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, desc, func
 import json
-import json
-from typing import Optional
+from typing import Optional, List
 from slugify import slugify
 from functools import lru_cache
 
 from . import models, schemas, security
 from app.database import SessionLocal
+from .cache import (
+    get_cached_tools, cache_tools, 
+    get_cached_tool, cache_tool,
+    get_cached_categories, cache_categories,
+    get_cached_tool_count, cache_tool_count,
+    cache
+)
 
 
 # --- Функции для Пользователей (Users) ---
@@ -54,7 +60,7 @@ def _get_categories_cached(lang: str = "ru", skip: int = 0, limit: int = 100):
             if not translation:
                 translation = next((t for t in cat.translations if t.language_code == 'ru'), None)
             if translation:
-                results.append(schemas.Category(id=cat.id, name=translation.name))
+                results.append(schemas.Category(id=cat.id, name=translation.name, slug=cat.slug))
         return results
     finally:
         db.close()
@@ -64,12 +70,61 @@ def get_categories_with_translation(db: Session, lang: str = "ru", skip: int = 0
     return _get_categories_cached(lang=lang, skip=skip, limit=limit)
 
 
+async def get_categories_with_cache(db: Session, lang: str = "ru", skip: int = 0, limit: int = 100):
+    """Кэшированная версия получения категорий."""
+    
+    # Проверяем кэш
+    cached_result = await get_cached_categories(lang)
+    if cached_result:
+        # Применяем пагинацию к кэшированному результату
+        start = skip
+        end = skip + limit
+        return cached_result[start:end]
+    
+    # Если нет в кэше, получаем из базы
+    result = get_categories_with_translation(db, lang, skip, limit)
+    
+    # Кэшируем полный список категорий (без пагинации)
+    if skip == 0 and limit >= 100:  # Кэшируем только если запрашиваем весь список
+        full_result = get_categories_with_translation(db, lang, 0, 1000)  # Получаем все
+        await cache_categories([cat.model_dump() for cat in full_result], lang, 600)
+    
+    return result
+
+
+def get_category_by_slug(db: Session, slug: str, lang: str = "ru"):
+    """Получает категорию по ее slug."""
+    category = db.query(models.Category).filter(models.Category.slug == slug).options(
+        joinedload(models.Category.translations)
+    ).first()
+    if category:
+        translation = next((t for t in category.translations if t.language_code == lang), None)
+        if not translation:
+            translation = next((t for t in category.translations if t.language_code == 'ru'), None)
+        if translation:
+            category.name = translation.name
+    return category
+
+
 def create_category(db: Session, category: schemas.CategoryCreate):
-    """Создает новую категорию и ее переводы."""
-    db_category = models.Category()
+    """Создает новую категорию, ее переводы и slug."""
+    # Генерируем slug из английского названия, если оно есть
+    primary_translation = next((t for t in category.translations if t.language_code == 'en' and t.name), None)
+    if not primary_translation:
+        primary_translation = category.translations[0] # Берем первый перевод, если английского нет
+
+    base_slug = slugify(primary_translation.name)
+    unique_slug = base_slug
+    counter = 1
+    while db.query(models.Category).filter(models.Category.slug == unique_slug).first():
+        unique_slug = f"{base_slug}-{counter}"
+        counter += 1
+
+    db_category = models.Category(slug=unique_slug)
     db.add(db_category)
     db.commit()
     db.refresh(db_category)
+
     for trans_data in category.translations:
         db_trans = models.CategoryTranslation(**trans_data.model_dump(), category_id=db_category.id)
         db.add(db_trans)
@@ -241,6 +296,55 @@ def get_tools_with_translation(
     return {"items": results, "total": total}
 
 
+async def get_tools_with_cache(
+        db: Session, lang: str = "ru", skip: int = 0, limit: int = 12,
+        category_id: Optional[int] = None, q: Optional[str] = None,
+        latest: Optional[bool] = None, is_featured: Optional[bool] = None,
+        pricing_model: Optional[models.PricingModel] = None, platform: Optional[str] = None,
+        sort_by: Optional[str] = None):
+    """Кэшированная версия получения инструментов."""
+    
+    # Не кэшируем результаты поиска и сложных фильтров
+    if q or pricing_model or platform or is_featured or latest or sort_by:
+        return get_tools_with_translation(
+            db, lang, skip, limit, category_id, q, latest, 
+            is_featured, pricing_model, platform, sort_by
+        )
+    
+    # Создаем ключ кэша для простых запросов
+    category_slug = None
+    if category_id:
+        category = db.query(models.Category).filter(models.Category.id == category_id).first()
+        category_slug = category.slug if category else None
+    
+    # Проверяем кэш
+    cached_result = await get_cached_tools(lang, category_slug, skip, limit)
+    if cached_result:
+        # Получаем количество из кэша или базы
+        total = await get_cached_tool_count(category_slug)
+        if total is None:
+            # Если количества нет в кэше, получаем из базы и кэшируем
+            query = db.query(models.Tool)
+            if category_id:
+                query = query.filter(models.Tool.category_id == category_id)
+            total = query.count()
+            await cache_tool_count(total, category_slug, 300)
+        
+        return {"items": cached_result, "total": total}
+    
+    # Если нет в кэше, получаем из базы
+    result = get_tools_with_translation(
+        db, lang, skip, limit, category_id, q, latest,
+        is_featured, pricing_model, platform, sort_by
+    )
+    
+    # Кэшируем результат (только для простых запросов)
+    await cache_tools(result["items"], lang, category_slug, skip, limit, 300)
+    await cache_tool_count(result["total"], category_slug, 300)
+    
+    return result
+
+
 def create_tool(db: Session, tool: schemas.ToolCreate, owner_id: int):
     """Создает новый инструмент и его переводы."""
     primary_translation = next((t for t in tool.translations if t.language_code == 'ru' and t.name),
@@ -265,6 +369,15 @@ def create_tool(db: Session, tool: schemas.ToolCreate, owner_id: int):
     db.commit()
     db.refresh(db_tool)
     return db_tool
+
+
+async def create_tool_with_cache_invalidation(db: Session, tool: schemas.ToolCreate, owner_id: int):
+    """Создает новый инструмент и инвалидирует кэш."""
+    result = create_tool(db, tool, owner_id)
+    if result:
+        # Инвалидируем кэш после создания
+        await cache.invalidate_tools_cache()
+    return result
 
 
 def update_or_create_tool_translation(db: Session, tool_id: int, language_code: str, name: str, description: str, short_description: Optional[str] = None):

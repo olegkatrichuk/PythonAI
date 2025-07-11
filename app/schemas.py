@@ -84,6 +84,7 @@ class CategoryCreate(BaseModel):
 class Category(BaseModel):
     id: int
     name: str
+    slug: str
     model_config = ConfigDict(from_attributes=True)
 
 

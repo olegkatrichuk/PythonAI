@@ -15,7 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # --- ИЗМЕНЕНИЕ 2: Импортируем нашу Base-модель и настройки ---
 from app.models import Base
-from app.config import settingsчто
+from app.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

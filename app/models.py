@@ -55,6 +55,7 @@ class Tool(Base):
 class Category(Base):
     __tablename__ = "categories"
     id = Column(Integer, primary_key=True, index=True)
+    slug = Column(String, unique=True, index=True, nullable=False)
     tools = relationship("Tool", back_populates="category")
     translations = relationship("CategoryTranslation", back_populates="category", cascade="all, delete-orphan")
 
