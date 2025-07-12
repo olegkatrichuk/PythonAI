@@ -125,6 +125,7 @@ export default async function ToolsPage({ params: paramsPromise, searchParams: s
 
                 <div className="flex-grow">
                     <ToolList
+                        basePath="/tool"
                         tools={tools}
                         total={total}
                         page={page}
