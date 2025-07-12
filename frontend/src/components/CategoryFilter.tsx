@@ -2,25 +2,24 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { getTranslations } from '@/lib/translations';
 import type { ICategory } from '@/types';
-import axios from 'axios';
 
 // Платформы остаются без изменений
 const PLATFORM_OPTIONS = ['Web', 'API', 'Windows', 'macOS', 'iOS', 'Android'];
 
+interface CategoryFilterProps {
+    categories: ICategory[];
+}
 
-export default function CategoryFilter() {
+export default function CategoryFilter({ categories }: CategoryFilterProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const router = useRouter();
     const lang = pathname.split('/')[1] || 'ru';
     const t = getTranslations(lang);
-
-    const [categories, setCategories] = useState<ICategory[]>([]);
 
     // --- ИЗМЕНЕНИЕ 1: Список для фильтра цен теперь использует переводы ---
     const PRICING_OPTIONS = [
@@ -35,30 +34,6 @@ export default function CategoryFilter() {
         { key: 'rating', label: t('sort_popular') },
         { key: 'review_count', label: t('sort_discussed') },
     ];
-
-    // Загружаем категории при монтировании
-    useEffect(() => {
-        const fetchCategories = async () => {
-            const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/categories/`;
-            try {
-                const res = await axios.get(apiUrl, { headers: { 'Accept-Language': lang } });
-                setCategories(res.data);
-            } catch (error: unknown) {
-                if (axios.isAxiosError(error)) {
-                    console.error("Failed to fetch categories:", error.message);
-                    if (error.response) {
-                        console.error("Response data:", error.response.data);
-                        console.error("Response status:", error.response.status);
-                    } else if (error.request) {
-                        console.error("No response received:", error.request);
-                    }
-                } else {
-                    console.error("An unexpected error occurred:", error);
-                }
-            }
-        };
-        void fetchCategories();
-    }, [lang]);
 
     // --- Улучшенная функция для создания URL ---
     const createFilterUrl = (paramName: string, paramValue: string | null) => {

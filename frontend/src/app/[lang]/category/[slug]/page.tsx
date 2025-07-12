@@ -73,6 +73,23 @@ async function getToolsForCategory(categoryId: number, searchParams: Awaited<Pag
     }
 }
 
+async function getCategories(lang: string): Promise<ICategory[]> {
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/categories/`;
+    try {
+        const res = await fetch(apiUrl, {
+            headers: { 'Accept-Language': lang },
+            cache: 'no-store',
+        });
+        if (!res.ok) {
+            return [];
+        }
+        return res.json();
+    } catch (error) {
+        console.error(`Error fetching categories:`, error);
+        return [];
+    }
+}
+
 export default async function CategoryPage({ params: paramsPromise, searchParams: searchParamsPromise }: PageProps) {
     const params = await paramsPromise;
     const searchParams = await searchParamsPromise;
@@ -81,7 +98,10 @@ export default async function CategoryPage({ params: paramsPromise, searchParams
     const page = Number(searchParams.page) || 1;
     const limit = Number(searchParams.limit) || 12;
 
-    const category = await getCategory(slug, lang);
+    const [category, categories] = await Promise.all([
+        getCategory(slug, lang),
+        getCategories(lang),
+    ]);
 
     if (!category) {
         notFound();
@@ -107,7 +127,7 @@ export default async function CategoryPage({ params: paramsPromise, searchParams
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div className="md:col-span-1">
                     {/* Фильтр категорий здесь, возможно, нужно будет адаптировать */}
-                    <CategoryFilter />
+                    <CategoryFilter categories={categories} />
                 </div>
                 <main className="md:col-span-3">
                     <Suspense fallback={<p>Loading tools...</p>}>

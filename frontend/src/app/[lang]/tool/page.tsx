@@ -49,12 +49,29 @@ async function getTools(lang: string, searchParams: URLSearchParams): Promise<Ap
     }
 }
 
+async function getCategories(lang: string): Promise<ICategory[]> {
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/categories/`;
+    try {
+        const res = await fetch(apiUrl, {
+            headers: { 'Accept-Language': lang },
+            cache: 'no-store',
+        });
+        if (!res.ok) {
+            return [];
+        }
+        return res.json();
+    } catch (error) {
+        console.error(`Error fetching categories:`, error);
+        return [];
+    }
+}
+
 // Возвращаем метаданные к простому виду для Next.js 15
 export async function generateMetadata({ params: paramsPromise }: ToolsPageProps): Promise<Metadata> {
     const params = await paramsPromise;
     const { lang } = params;
     const t = getTranslations(lang);
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const siteUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
     // ... остальная логика для метаданных остается без изменений ...
 
@@ -78,7 +95,12 @@ export default async function ToolsPage({ params: paramsPromise, searchParams: s
     // Преобразуем searchParams в стандартный URLSearchParams
     const queryParams = new URLSearchParams(searchParams as any);
 
-    const { items: tools, total } = await getTools(lang, queryParams);
+    const [toolsData, categories] = await Promise.all([
+        getTools(lang, queryParams),
+        getCategories(lang),
+    ]);
+
+    const { items: tools, total } = toolsData;
     const page = Number(queryParams.get('page') ?? '1');
     const limit = Number(queryParams.get('limit') ?? '12');
 
@@ -98,7 +120,7 @@ export default async function ToolsPage({ params: paramsPromise, searchParams: s
 
             <div className="flex flex-col md:flex-row gap-8">
                 <aside className="md:w-1/4 lg:w-1/5">
-                    <CategoryFilter />
+                    <CategoryFilter categories={categories} />
                 </aside>
 
                 <div className="flex-grow">
