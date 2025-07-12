@@ -10,7 +10,7 @@ from slugify import slugify
 # --- Настройка путей для импорта ---
 sys.path.append(str(Path(__file__).resolve().parent))
 from app.database import SessionLocal, engine
-from app import models, schemas
+from app import models
 from app.models import Base  # Импортируем Base для создания таблиц
 
 # --- 1. КОНФИГУРАЦИЯ КАТЕГОРИЙ (ВАЖНО!) ---
@@ -102,7 +102,7 @@ def seed_database(force: bool = False):
             tools_to_process = json.load(f)
         print(f"Успешно загружено {len(tools_to_process)} инструментов.")
 
-        print(f"\nОбработка и добавление инструментов...")
+        print("\nОбработка и добавление инструментов...")
         for tool_data in tools_to_process:
             name = tool_data.get('name')
             if not name:
@@ -150,7 +150,7 @@ def seed_database(force: bool = False):
 
         print("\nСохранение всех изменений в базе данных...")
         db.commit()
-        print(f"\nЗаполнение базы данных успешно завершено!")
+        print("\nЗаполнение базы данных успешно завершено!")
 
     except Exception as e:
         print(f"\n[КРИТИЧЕСКАЯ ОШИБКА] Произошла ошибка: {e}")

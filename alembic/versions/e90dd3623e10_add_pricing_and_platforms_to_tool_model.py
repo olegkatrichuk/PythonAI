@@ -8,7 +8,6 @@ Create Date: 2025-06-29 15:31:35.651745
 from typing import Sequence, Union
 
 from alembic import op
-import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql  # ✅ обязательно для ENUM
 
 # revision identifiers, used by Alembic.

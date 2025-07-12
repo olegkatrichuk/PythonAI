@@ -11,14 +11,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # Импортируем все наши модули
 from . import crud, models, schemas, security
-from .database import get_db, engine
+from .database import get_db
 from .cache import cache
 from .rate_limit import (
     limiter, rate_limit_handler, RateLimitHeadersMiddleware,
     apply_read_limit, apply_search_limit, apply_write_limit, 
     apply_auth_limit, get_rate_limit_stats
 )
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 # Lifecycle events для подключения/отключения Redis

@@ -3,7 +3,7 @@
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, desc, func
 import json
-from typing import Optional, List
+from typing import Optional
 from slugify import slugify
 from functools import lru_cache
 
@@ -11,7 +11,6 @@ from . import models, schemas, security
 from app.database import SessionLocal
 from .cache import (
     get_cached_tools, cache_tools,
-    get_cached_tool, cache_tool,
     get_cached_categories, cache_categories,
     get_cached_tool_count, cache_tool_count,
     cache
@@ -185,7 +184,7 @@ def _get_featured_tools_cached(lang: str = "ru", limit: int = 6):
     db: Session = SessionLocal()
     try:
         # Сначала ищем избранные инструменты
-        query = db.query(models.Tool).filter(models.Tool.is_featured == True)
+        query = db.query(models.Tool).filter(models.Tool.is_featured)
         tools_db = query.options(
             joinedload(models.Tool.translations),
             joinedload(models.Tool.reviews).joinedload(models.Review.author),

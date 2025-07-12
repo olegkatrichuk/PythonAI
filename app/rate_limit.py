@@ -3,14 +3,12 @@ Rate limiting middleware для защиты API от перегрузок
 """
 
 import os
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 import redis.asyncio as redis
-from typing import Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -80,8 +78,6 @@ class RateLimitHeadersMiddleware:
         if scope["type"] == "http":
             async def send_wrapper(message):
                 if message["type"] == "http.response.start":
-                    headers = dict(message.get("headers", []))
-                    
                     # Добавляем заголовки rate limiting (если доступны)
                     try:
                         # Эти заголовки будут добавлены slowapi автоматически

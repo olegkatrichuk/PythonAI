@@ -5,7 +5,6 @@ Redis кэширование для оптимизации производит�
 import json
 import redis.asyncio as redis
 from typing import Optional, List, Dict, Any
-from datetime import datetime, timedelta
 import os
 import logging
 from contextlib import asynccontextmanager
