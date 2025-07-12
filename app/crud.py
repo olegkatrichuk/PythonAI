@@ -172,7 +172,8 @@ def _get_featured_tools_cached(lang: str = "ru", limit: int = 6):
                     "created_at": tool.created_at.isoformat() if tool.created_at else None,
                     "average_rating": float(tool.average_rating) if tool.average_rating is not None else 0.0,
                     "review_count": int(tool.review_count) if tool.review_count is not None else 0,
-                    "pricing_model": tool.pricing_model,
+                    "pricing_model": tool.pricing_model.value if hasattr(tool.pricing_model, 'value') else str(
+                        tool.pricing_model),
                     "platforms": tool.platforms if isinstance(tool.platforms, list) else [],
                     "category_id": tool.category_id,
                     "owner_id": tool.owner_id,
@@ -223,7 +224,8 @@ def _get_latest_tools_cached(lang: str = "ru", limit: int = 6):
                     "created_at": tool.created_at.isoformat() if tool.created_at else None,
                     "average_rating": float(tool.average_rating) if tool.average_rating is not None else 0.0,
                     "review_count": int(tool.review_count) if tool.review_count is not None else 0,
-                    "pricing_model": tool.pricing_model,
+                    "pricing_model": tool.pricing_model.value if hasattr(tool.pricing_model, 'value') else str(
+                        tool.pricing_model),
                     "platforms": tool.platforms if isinstance(tool.platforms, list) else [],
                     "category_id": tool.category_id,
                     "owner_id": tool.owner_id,
@@ -376,7 +378,8 @@ def get_tools_with_translation(
                 "created_at": tool.created_at.isoformat() if tool.created_at else None,
                 "average_rating": float(tool.average_rating) if tool.average_rating else 0.0,
                 "review_count": int(tool.review_count) if tool.review_count else 0,
-                "pricing_model": tool.pricing_model,
+                "pricing_model": tool.pricing_model.value if hasattr(tool.pricing_model, 'value') else str(
+                    tool.pricing_model),
                 "platforms": tool.platforms if isinstance(tool.platforms, list) else [],
                 "category_id": tool.category_id,
                 "owner_id": tool.owner_id,
