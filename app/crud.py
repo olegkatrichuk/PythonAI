@@ -89,48 +89,45 @@ def get_tools_by_owner(db: Session, owner_id: int, lang: str = "ru"):
 
 # --- Функции для Категорий (Categories) ---
 
-@lru_cache(maxsize=128)
-def _get_categories_cached(lang: str = "ru", skip: int = 0, limit: int = 100):
-    db: Session = SessionLocal()
-    try:
-        categories = db.query(models.Category).options(
-            joinedload(models.Category.translations)
-        ).offset(skip).limit(limit).all()
-        results = []
-        for cat in categories:
-            translation = next((t for t in cat.translations if t.language_code == lang), None)
-            if not translation:
-                translation = next((t for t in cat.translations if t.language_code == 'ru'), None)
-            if translation:
-                results.append(schemas.Category(id=cat.id, name=translation.name, slug=cat.slug))
-        return results
-    finally:
-        db.close()
+def get_categories_with_translation(db: Session, lang: str = "ru"):
+    """
+    Получает список ВСЕХ категорий с переводом на указанный язык.
+    Эта функция намеренно упрощена для надежности.
+    """
+    categories = db.query(models.Category).options(
+        joinedload(models.Category.translations)
+    ).all()
+    
+    results = []
+    for cat in categories:
+        translation = next((t for t in cat.translations if t.language_code == lang), None)
+        if not translation:
+            # Фоллбэк на русский, если перевод не найден
+            translation = next((t for t in cat.translations if t.language_code == 'ru'), None)
+        
+        if translation:
+            results.append(schemas.Category(id=cat.id, name=translation.name, slug=cat.slug))
+            
+    return results
 
 
-def get_categories_with_translation(db: Session, lang: str = "ru", skip: int = 0, limit: int = 100):
-    """Получает список категорий с переводом на указанный язык."""
-    return _get_categories_cached(lang=lang, skip=skip, limit=limit)
-
-
-async def get_categories_with_cache(db: Session, lang: str = "ru", skip: int = 0, limit: int = 100):
-    """Кэшированная версия получения категорий."""
-
-    # Проверяем кэш
+async def get_categories_with_cache(db: Session, lang: str = "ru"):
+    """
+    Кэшированная версия получения категорий.
+    Сначала проверяет кэш Redis, и если он пуст,
+    запрашивает данные из БД с помощью `get_categories_with_translation`.
+    """
+    # 1. Проверяем кэш
     cached_result = await get_cached_categories(lang)
     if cached_result:
-        # Применяем пагинацию к кэшированному результату
-        start = skip
-        end = skip + limit
-        return cached_result[start:end]
+        return cached_result
 
-    # Если нет в кэше, получаем из базы
-    result = get_categories_with_translation(db, lang, skip, limit)
+    # 2. Если в кэше нет, получаем из базы данных
+    result = get_categories_with_translation(db, lang)
 
-    # Кэшируем полный список категорий (без пагинации)
-    if skip == 0 and limit >= 100:  # Кэшируем только если запрашиваем весь список
-        full_result = get_categories_with_translation(db, lang, 0, 1000)  # Получаем все
-        await cache_categories([cat.model_dump() for cat in full_result], lang, 600)
+    # 3. Кэшируем результат на 10 минут (600 секунд)
+    if result:
+        await cache_categories([cat.model_dump() for cat in result], lang, 600)
 
     return result
 

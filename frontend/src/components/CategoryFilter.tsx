@@ -74,8 +74,8 @@ export default function CategoryFilter({ categories }: CategoryFilterProps) {
                     <li>
                         {/* Ссылка на главную страницу для сброса категории */}
                         <Link
-                            href={`/${lang}`}
-                            className={`${baseLinkStyle} ${pathname === `/${lang}` ? activeLinkStyle : ''}`}
+                            href={`/${lang}/tool`}
+                            className={`${baseLinkStyle} ${pathname === `/${lang}/tool` ? activeLinkStyle : ''}`}
                         >
                             {t('all_categories_button')}
                         </Link>
