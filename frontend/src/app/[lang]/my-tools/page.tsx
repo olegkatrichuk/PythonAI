@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getTranslations } from '@/lib/translations';
+import { apiUrl } from '@/lib/api';
 import type { ITool } from '@/types';
 import axios, { isAxiosError } from 'axios';
 import toast from 'react-hot-toast';
@@ -30,8 +31,8 @@ export default function MyToolsPage() {
     try {
       setLoading(true);
       // ИЗМЕНЕНИЕ 1: Используем переменную окружения
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/users/me/tools/`;
-      const response = await axios.get(apiUrl, {
+      const myToolsApiUrl = `${apiUrl}/api/users/me/tools/`;
+      const response = await axios.get(myToolsApiUrl, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept-Language': lang,
@@ -78,8 +79,8 @@ export default function MyToolsPage() {
 
     try {
         // ИЗМЕНЕНИЕ 2: Используем переменную окружения
-        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/${toolToDelete.id}`;
-        await axios.delete(apiUrl, {
+        const deleteApiUrl = `${apiUrl}/api/tools/${toolToDelete.id}`;
+        await axios.delete(deleteApiUrl, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         toast.success("Инструмент успешно удален.");

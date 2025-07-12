@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import StarRating from '@/components/StarRating';
 import ReviewsSection from '@/components/ReviewsSection';
+import { apiUrl } from '@/lib/api';
 
 
 type PageProps = {
@@ -25,16 +26,16 @@ const PRICING_INFO = {
 
 // 🔄 Получение одного инструмента
 async function getToolBySlug(slug: string, lang: string): Promise<ITool | null> {
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/${slug}`;
+  const toolApiUrl = `${apiUrl}/api/tools/${slug}`;
   try {
-    const res = await fetch(apiUrl, {
+    const res = await fetch(toolApiUrl, {
       headers: { 'Accept-Language': lang },
       cache: 'no-store',
     });
     if (!res.ok) return null;
     return res.json();
   } catch (error) {
-    console.error(`[ERROR] Fetching tool by slug failed for URL: ${apiUrl}`, error);
+    console.error(`[ERROR] Fetching tool by slug failed for URL: ${toolApiUrl}`, error);
     return null;
   }
 }

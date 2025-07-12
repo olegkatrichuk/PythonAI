@@ -6,6 +6,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useParams } from 'next/navigation';
+import { apiUrl } from '@/lib/api';
 import type { IReview } from '@/types';
 
 import StarRating from './StarRating'; // Импортируем наш компонент со звездами
@@ -65,8 +66,8 @@ export default function ReviewsSection({ toolSlug }: { toolSlug: string }) {
   const fetchReviews = useCallback(async () => {
     setLoading(true);
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/${toolSlug}/reviews`;
-      const response = await axios.get(apiUrl);
+      const reviewsUrl = `${apiUrl}/api/tools/${toolSlug}/reviews`;
+      const response = await axios.get(reviewsUrl);
       setReviews(response.data);
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
@@ -83,8 +84,8 @@ export default function ReviewsSection({ toolSlug }: { toolSlug: string }) {
     if (!user || !token) { toast.error("Нужно войти в систему, чтобы оставить отзыв."); return; }
 
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/${toolSlug}/reviews/`;
-      const response = await axios.post(apiUrl, { rating, text }, { headers: { Authorization: `Bearer ${token}` } });
+      const createReviewUrl = `${apiUrl}/api/tools/${toolSlug}/reviews/`;
+      const response = await axios.post(createReviewUrl, { rating, text }, { headers: { Authorization: `Bearer ${token}` } });
       setReviews(prev => [response.data, ...prev]);
       toast.success("Спасибо за ваш отзыв!");
       // Перезагружаем отзывы, чтобы обновить средний рейтинг на странице
