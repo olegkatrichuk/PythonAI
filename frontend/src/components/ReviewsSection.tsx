@@ -65,7 +65,7 @@ export default function ReviewsSection({ toolSlug }: { toolSlug: string }) {
   const fetchReviews = useCallback(async () => {
     setLoading(true);
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/${toolSlug}/reviews/`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/${toolSlug}/reviews`;
       const response = await axios.get(apiUrl);
       setReviews(response.data);
     } catch (error) {
