@@ -537,8 +537,32 @@ def get_reviews_by_tool_slug(db: Session, slug: str, skip: int = 0, limit: int =
     tool = db.query(models.Tool).filter(models.Tool.slug == slug).first()
     if not tool:
         return []
-    # ИСПРАВЛЕНИЕ: Запрос должен быть к таблице Review, а не Tool
+
     reviews = db.query(models.Review).filter(models.Review.tool_id == tool.id).order_by(
         desc(models.Review.created_at)
     ).options(joinedload(models.Review.author)).offset(skip).limit(limit).all()
-    return reviews
+
+    # Сериализуем отзывы в словари
+    serialized_reviews = []
+    for review in reviews:
+        if review:
+            review_dict = {
+                "id": review.id,
+                "rating": review.rating,
+                "comment": review.comment,
+                "created_at": review.created_at.isoformat() if review.created_at else None,
+                "tool_id": review.tool_id,
+                "author_id": review.author_id,
+            }
+
+            # Добавляем информацию об авторе если есть
+            if hasattr(review, 'author') and review.author:
+                review_dict["author"] = {
+                    "id": review.author.id,
+                    "email": review.author.email,
+                    # Добавьте другие поля автора если нужно
+                }
+
+            serialized_reviews.append(review_dict)
+
+    return serialized_reviews
