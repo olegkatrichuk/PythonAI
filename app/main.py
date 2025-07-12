@@ -16,7 +16,7 @@ from .database import get_db
 from .cache import cache
 from .rate_limit import (
     limiter, rate_limit_handler, RateLimitHeadersMiddleware,
-    apply_read_limit, apply_search_limit, apply_write_limit, 
+    apply_read_limit, apply_search_limit, apply_write_limit,
     apply_auth_limit, get_rate_limit_stats
 )
 from slowapi.errors import RateLimitExceeded
@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
     # Startup
     await cache.connect()
     yield
-    # Shutdown  
+    # Shutdown
     await cache.disconnect()
 
 app = FastAPI(title="AI Finder API", lifespan=lifespan)
@@ -41,14 +41,10 @@ app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 app.add_middleware(RateLimitHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",        # Для локальной разработки
-        "http://frontend:3000",         # Для Docker контейнера
-        "https://www.getaifind.com",    # Ваш production домен
-        "https://getaifind.com",        # Без www
-    ],
+    # Временно разрешаем все источники для отладки
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -87,7 +83,7 @@ def get_language_from_header(accept_language: Optional[str] = Header("ru")) -> s
 @router.post("/users/", response_model=schemas.User, tags=["users"])
 @apply_write_limit()
 def create_new_user(request: Request, user: schemas.UserCreate, db: Session = Depends(get_db)):
-    # --- НАЧАЛО ИЗМЕНЕНИЙ ДЛЯ ДИАГНОСТИКИ ---
+    # --- БЛОК ДЛЯ ДИАГНОСТИКИ ОШИБКИ 500 ---
     print(f"--- ПОПЫТКА РЕГИСТРАЦИИ ПОЛЬЗОВАТЕЛЯ: {user.email} ---")
     try:
         db_user = crud.get_user_by_email(db, email=user.email)
@@ -99,7 +95,6 @@ def create_new_user(request: Request, user: schemas.UserCreate, db: Session = De
         return created_user
 
     except Exception as e:
-        # --- ЭТО САМАЯ ВАЖНАЯ ЧАСТЬ ---
         # Если произойдет ЛЮБАЯ ошибка, мы ее здесь поймаем и запишем в лог.
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         print(f"!!!!!!!!!! КРИТИЧЕСКАЯ ОШИБКА ПРИ РЕГИСТРАЦИИ !!!!!!!!!!")
@@ -107,9 +102,9 @@ def create_new_user(request: Request, user: schemas.UserCreate, db: Session = De
         traceback.print_exc()  # Печатаем полный путь ошибки (traceback)
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
-        # Возвращаем стандартную ошибку 500, но теперь мы точно будем знать, что произошло.
+        # Возвращаем стандартную ошибку 500
         raise HTTPException(status_code=500, detail="Internal server error during user creation.")
-    # --- КОНЕЦ ИЗМЕНЕНИЙ ДЛЯ ДИАГНОСТИКИ ---
+    # --- КОНЕЦ БЛОКА ДИАГНОСТИКИ ---
 
 
 @router.post("/token", response_model=schemas.Token, tags=["users"])
