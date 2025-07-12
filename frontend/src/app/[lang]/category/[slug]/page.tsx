@@ -11,14 +11,14 @@ import SearchBar from '@/components/SearchBar';
 
 
 type PageProps = {
-    params: Promise<{ 
+    params: Promise<{
         lang: string;
         slug: string;
     }>;
-    searchParams: Promise<{ 
-        page?: string; 
-        limit?: string; 
-        q?: string; 
+    searchParams: Promise<{
+        page?: string;
+        limit?: string;
+        q?: string;
     }>;
 };
 
@@ -38,8 +38,8 @@ async function getCategory(slug: string, lang: string): Promise<ICategory | null
     }
 }
 
-// Функция для получения инструментов для конкретной категории
-async function getToolsForCategory(categoryId: number, searchParams: Awaited<PageProps['searchParams']>, lang: string): Promise<{ tools: ITool[], total: number }> {
+// --- ИЗМЕНЕНИЕ 1: Обновляем возвращаемый тип, чтобы он соответствовал API ---
+async function getToolsForCategory(categoryId: number, searchParams: Awaited<PageProps['searchParams']>, lang: string): Promise<{ items: ITool[], total: number }> {
     const {
         page = '1',
         limit = '12',
@@ -69,7 +69,8 @@ async function getToolsForCategory(categoryId: number, searchParams: Awaited<Pag
         return res.json();
     } catch (error) {
         console.error("[ERROR] Fetching tools for category failed:", error);
-        return { tools: [], total: 0 };
+        // Возвращаем объект с полем 'items', а не 'tools', чтобы соответствовать типу
+        return { items: [], total: 0 };
     }
 }
 
@@ -107,7 +108,8 @@ export default async function CategoryPage({ params: paramsPromise, searchParams
         notFound();
     }
 
-    const { tools, total } = await getToolsForCategory(category.id, searchParams, lang);
+    // --- ИЗМЕНЕНИЕ 2: Переименовываем 'items' в 'tools' при получении данных ---
+    const { items: tools, total } = await getToolsForCategory(category.id, searchParams, lang);
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -137,6 +139,7 @@ export default async function CategoryPage({ params: paramsPromise, searchParams
                             page={page}
                             limit={limit}
                             lang={lang}
+                            basePath={`/${lang}/category/${slug}`}
                         />
                     </Suspense>
                 </main>

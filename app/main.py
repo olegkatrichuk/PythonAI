@@ -193,7 +193,7 @@ def read_tool_by_slug(request: Request, tool_slug: str, db: Session = Depends(ge
     return db_tool
 
 
-@router.get("/tools/{tool_slug}/reviews/", response_model=List[schemas.Review], tags=["reviews"])
+@router.get("/tools/{tool_slug}/reviews", response_model=List[schemas.Review], tags=["reviews"])
 @apply_read_limit()
 def read_tool_reviews(request: Request, tool_slug: str, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_reviews_by_tool_slug(db, slug=tool_slug, skip=skip, limit=limit)
@@ -212,6 +212,7 @@ def create_new_review_for_tool(
     if not tool:
         raise HTTPException(status_code=404, detail="Инструмент не найден")
 
+    # Ошибка будет здесь: tool - это словарь, а не объект
     return crud.create_review(db=db, review=review, tool_id=tool.id, author_id=current_user.id)
 
 

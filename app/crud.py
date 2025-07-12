@@ -469,7 +469,17 @@ def update_tool_rating(db: Session, tool_id: int):
 
 def create_review(db: Session, review: schemas.ReviewCreate, tool_id: int, author_id: int):
     """Создает новый отзыв в базе данных."""
-    db_review = models.Review(**review.model_dump(), tool_id=tool_id, author_id=author_id)
+    # Получаем данные из схемы
+    review_data = review.model_dump()
+
+    # Создаем объект модели вручную, подставляя 'text' в поле 'comment'
+    db_review = models.Review(
+        rating=review_data.get('rating'),
+        comment=review_data.get('text'),  # <--- Вот ключевое изменение
+        tool_id=tool_id,
+        author_id=author_id
+    )
+
     db.add(db_review)
     db.commit()
     db.refresh(db_review)
@@ -494,7 +504,7 @@ def get_reviews_by_tool_slug(db: Session, slug: str, skip: int = 0, limit: int =
             review_dict = {
                 "id": review.id,
                 "rating": review.rating,
-                "text": review.comment,  # Переименовываем comment в text для фронтенда
+                "text": review.text,  # Переименовываем comment в text для фронтенда
                 "created_at": review.created_at.isoformat() if review.created_at else None,
                 "tool_id": review.tool_id,
                 "author_id": review.author_id,

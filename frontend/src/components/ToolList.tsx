@@ -20,6 +20,7 @@ interface ToolListProps {
     page: number;
     limit: number;
     lang: string;
+    basePath: string;
 }
 
 export default function ToolList({ tools, total, page, limit, lang }: ToolListProps) {
