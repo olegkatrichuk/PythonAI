@@ -302,8 +302,11 @@ def get_tools_with_translation(
         pricing_model: Optional[models.PricingModel] = None, platform: Optional[str] = None,
         sort_by: Optional[str] = None):
     """Получает список инструментов с поддержкой всех фильтров."""
+    print(f"[CRUD DEBUG] Search query: '{q}', lang: '{lang}', category_id: {category_id}")
+    
     query = db.query(models.Tool)
     if q:
+        print(f"[CRUD DEBUG] Applying search filter for query: '{q}'")
         query = query.join(models.Tool.translations).filter(
             models.ToolTranslation.language_code == lang,
             or_(models.ToolTranslation.name.ilike(f"%{q}%"), models.ToolTranslation.description.ilike(f"%{q}%"))

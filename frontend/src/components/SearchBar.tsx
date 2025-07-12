@@ -44,18 +44,17 @@ export default function SearchBar() {
   };
 
   return (
-    // ИЗМЕНЕНИЕ: Стили переписаны на Tailwind CSS для единообразия
     <form onSubmit={handleSearch} className="flex gap-3">
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={t('search_placeholder')}
-        className="flex-grow bg-slate-700 border border-slate-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-3"
+        className="flex-grow bg-background border border-foreground/20 text-foreground text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-3 placeholder:text-foreground/50"
       />
       <button
         type="submit"
-        className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-bold rounded-lg text-sm px-6 py-3"
+        className="bg-primary text-primaryForeground hover:bg-primary/90 focus:ring-4 focus:outline-none focus:ring-primary/30 font-bold rounded-lg text-sm px-6 py-3 transition-colors"
       >
         {t('search_button')}
       </button>
