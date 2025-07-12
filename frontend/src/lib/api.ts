@@ -5,17 +5,10 @@ export const getApiUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL;
   }
   
-  // Fallback для production - определяем URL на основе текущего хоста
+  // На production используем относительный путь если API и frontend на одном домене
   if (process.env.NODE_ENV === 'production') {
-    // Если мы в браузере, используем текущий домен с API поддоменом
-    if (typeof window !== 'undefined') {
-      const currentDomain = window.location.hostname;
-      if (currentDomain.includes('getaifind.com')) {
-        return 'https://api.getaifind.com';
-      }
-    }
-    // Fallback для server-side rendering
-    return 'https://api.getaifind.com';
+    // Используем относительный URL - Next.js rewrite перенаправит на backend
+    return '';
   }
   
   // Development fallback
