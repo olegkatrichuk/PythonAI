@@ -40,9 +40,14 @@ app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 app.add_middleware(RateLimitHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Ограничено для безопасности в разработке. Измените для продакшена!
+    allow_origins=[
+        "http://localhost:3000",        # Для локальной разработки
+        "http://frontend:3000",         # Для Docker контейнера
+        "https://www.getaifind.com",    # Ваш production домен
+        "https://getaifind.com",        # Без www
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -212,8 +217,9 @@ def create_new_review_for_tool(
     if not tool:
         raise HTTPException(status_code=404, detail="Инструмент не найден")
 
-    # Ошибка будет здесь: tool - это словарь, а не объект
-    return crud.create_review(db=db, review=review, tool_id=tool.id, author_id=current_user.id)
+    # Исправляем: tool - это словарь, получаем id как ключ
+    tool_id = tool["id"] if isinstance(tool, dict) else tool.id
+    return crud.create_review(db=db, review=review, tool_id=tool_id, author_id=current_user.id)
 
 
 @app.get("/", tags=["root"])
