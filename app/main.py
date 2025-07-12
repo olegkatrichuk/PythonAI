@@ -8,6 +8,7 @@ from datetime import timedelta
 from contextlib import asynccontextmanager
 from jose import JWTError, jwt
 from fastapi.middleware.cors import CORSMiddleware
+import traceback
 
 # Импортируем все наши модули
 from . import crud, models, schemas, security
@@ -86,10 +87,29 @@ def get_language_from_header(accept_language: Optional[str] = Header("ru")) -> s
 @router.post("/users/", response_model=schemas.User, tags=["users"])
 @apply_write_limit()
 def create_new_user(request: Request, user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db, user=user)
+    # --- НАЧАЛО ИЗМЕНЕНИЙ ДЛЯ ДИАГНОСТИКИ ---
+    print(f"--- ПОПЫТКА РЕГИСТРАЦИИ ПОЛЬЗОВАТЕЛЯ: {user.email} ---")
+    try:
+        db_user = crud.get_user_by_email(db, email=user.email)
+        if db_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+        created_user = crud.create_user(db=db, user=user)
+        print(f"--- ПОЛЬЗОВАТЕЛЬ {user.email} УСПЕШНО СОЗДАН ---")
+        return created_user
+
+    except Exception as e:
+        # --- ЭТО САМАЯ ВАЖНАЯ ЧАСТЬ ---
+        # Если произойдет ЛЮБАЯ ошибка, мы ее здесь поймаем и запишем в лог.
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print(f"!!!!!!!!!! КРИТИЧЕСКАЯ ОШИБКА ПРИ РЕГИСТРАЦИИ !!!!!!!!!!")
+        print(f"!!!!!!!!!! ТИП ОШИБКИ: {type(e).__name__}, СООБЩЕНИЕ: {e} !!!!!!!!!!")
+        traceback.print_exc()  # Печатаем полный путь ошибки (traceback)
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
+        # Возвращаем стандартную ошибку 500, но теперь мы точно будем знать, что произошло.
+        raise HTTPException(status_code=500, detail="Internal server error during user creation.")
+    # --- КОНЕЦ ИЗМЕНЕНИЙ ДЛЯ ДИАГНОСТИКИ ---
 
 
 @router.post("/token", response_model=schemas.Token, tags=["users"])
