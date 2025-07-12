@@ -549,7 +549,7 @@ def get_reviews_by_tool_slug(db: Session, slug: str, skip: int = 0, limit: int =
             review_dict = {
                 "id": review.id,
                 "rating": review.rating,
-                "comment": review.comment,
+                "text": review.comment,
                 "created_at": review.created_at.isoformat() if review.created_at else None,
                 "tool_id": review.tool_id,
                 "author_id": review.author_id,
