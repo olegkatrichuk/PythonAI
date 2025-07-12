@@ -144,7 +144,7 @@ def _get_featured_tools_cached(lang: str = "ru", limit: int = 6):
         query = db.query(models.Tool).filter(models.Tool.is_featured == True)
         tools_db = query.options(
             joinedload(models.Tool.translations),
-            joinedload(models.Tool.reviews).joinedload(models.Review.author),  # ВОССТАНАВЛИВАЮ КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ
+            joinedload(models.Tool.reviews).joinedload(models.Review.author),
             joinedload(models.Tool.category).joinedload(models.Category.translations)
         ).limit(limit).all()
 
@@ -158,9 +158,43 @@ def _get_featured_tools_cached(lang: str = "ru", limit: int = 6):
             ).limit(limit).all()
 
         results = [_populate_tool_translation_details(tool, lang) for tool in tools_db]
-        return {"items": results, "total": len(results)}
+
+        # Сериализуем объекты в словари для FastAPI
+        serialized_results = []
+        for tool in results:
+            if tool:
+                tool_dict = {
+                    "id": tool.id,
+                    "slug": tool.slug,
+                    "url": tool.url,
+                    "icon_url": tool.icon_url,
+                    "is_featured": tool.is_featured,
+                    "created_at": tool.created_at.isoformat() if tool.created_at else None,
+                    "average_rating": float(tool.average_rating) if tool.average_rating is not None else 0.0,
+                    "review_count": int(tool.review_count) if tool.review_count is not None else 0,
+                    "pricing_model": tool.pricing_model,
+                    "platforms": tool.platforms if isinstance(tool.platforms, list) else [],
+                    "category_id": tool.category_id,
+                    "owner_id": tool.owner_id,
+                    "name": getattr(tool, 'name', ''),
+                    "description": getattr(tool, 'description', ''),
+                    "short_description": getattr(tool, 'short_description', ''),
+                }
+
+                # Добавляем категорию если есть
+                if hasattr(tool, 'category') and tool.category:
+                    tool_dict["category"] = {
+                        "id": tool.category.id,
+                        "name": getattr(tool.category, 'name', ''),
+                        "slug": tool.category.slug
+                    }
+
+                serialized_results.append(tool_dict)
+
+        return {"items": serialized_results, "total": len(serialized_results)}
     finally:
         db.close()
+
 
 @lru_cache(maxsize=1)
 def _get_latest_tools_cached(lang: str = "ru", limit: int = 6):
@@ -173,10 +207,45 @@ def _get_latest_tools_cached(lang: str = "ru", limit: int = 6):
             joinedload(models.Tool.reviews).joinedload(models.Review.author),
             joinedload(models.Tool.category).joinedload(models.Category.translations)
         ).limit(limit).all()
+
         results = [_populate_tool_translation_details(tool, lang) for tool in tools_db]
-        return {"items": results, "total": len(results)}
+
+        # Сериализуем объекты в словари для FastAPI
+        serialized_results = []
+        for tool in results:
+            if tool:
+                tool_dict = {
+                    "id": tool.id,
+                    "slug": tool.slug,
+                    "url": tool.url,
+                    "icon_url": tool.icon_url,
+                    "is_featured": tool.is_featured,
+                    "created_at": tool.created_at.isoformat() if tool.created_at else None,
+                    "average_rating": float(tool.average_rating) if tool.average_rating is not None else 0.0,
+                    "review_count": int(tool.review_count) if tool.review_count is not None else 0,
+                    "pricing_model": tool.pricing_model,
+                    "platforms": tool.platforms if isinstance(tool.platforms, list) else [],
+                    "category_id": tool.category_id,
+                    "owner_id": tool.owner_id,
+                    "name": getattr(tool, 'name', ''),
+                    "description": getattr(tool, 'description', ''),
+                    "short_description": getattr(tool, 'short_description', ''),
+                }
+
+                # Добавляем категорию если есть
+                if hasattr(tool, 'category') and tool.category:
+                    tool_dict["category"] = {
+                        "id": tool.category.id,
+                        "name": getattr(tool.category, 'name', ''),
+                        "slug": tool.category.slug
+                    }
+
+                serialized_results.append(tool_dict)
+
+        return {"items": serialized_results, "total": len(serialized_results)}
     finally:
         db.close()
+
 
 
 # --- Функции для Инструментов (Tools) ---
@@ -293,7 +362,40 @@ def get_tools_with_translation(
         joinedload(models.Tool.category).joinedload(models.Category.translations)
     ).offset(skip).limit(limit).all()
     results = [_populate_tool_translation_details(tool, lang) for tool in tools_db]
-    return {"items": results, "total": total}
+
+    # Сериализуем объекты в словари
+    serialized_results = []
+    for tool in results:
+        if tool:
+            tool_dict = {
+                "id": tool.id,
+                "slug": tool.slug,
+                "url": tool.url,
+                "icon_url": tool.icon_url,
+                "is_featured": tool.is_featured,
+                "created_at": tool.created_at.isoformat() if tool.created_at else None,
+                "average_rating": float(tool.average_rating) if tool.average_rating else 0.0,
+                "review_count": int(tool.review_count) if tool.review_count else 0,
+                "pricing_model": tool.pricing_model,
+                "platforms": tool.platforms if isinstance(tool.platforms, list) else [],
+                "category_id": tool.category_id,
+                "owner_id": tool.owner_id,
+                "name": getattr(tool, 'name', ''),
+                "description": getattr(tool, 'description', ''),
+                "short_description": getattr(tool, 'short_description', ''),
+            }
+
+            # Добавляем категорию если есть
+            if hasattr(tool, 'category') and tool.category:
+                tool_dict["category"] = {
+                    "id": tool.category.id,
+                    "name": getattr(tool.category, 'name', ''),
+                    "slug": tool.category.slug
+                }
+
+            serialized_results.append(tool_dict)
+
+    return {"items": serialized_results, "total": total}
 
 
 async def get_tools_with_cache(
