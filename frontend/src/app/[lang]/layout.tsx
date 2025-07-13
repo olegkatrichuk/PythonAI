@@ -11,11 +11,27 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Providers } from "@/app/providers";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: { default: "AI Tools Finder", template: "%s | AI Tools Finder" },
   description: "Находите и сравнивайте лучшие AI-инструменты.",
+  openGraph: {
+    title: "AI Tools Finder",
+    description: "Находите и сравнивайте лучшие AI-инструменты.",
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+    siteName: 'AI Tools Finder',
+    locale: 'ru',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "AI Tools Finder",
+    description: "Находите и сравнивайте лучшие AI-инструменты.",
+    creator: '@ilikenewcoin',
+  },
 };
 
 export async function generateStaticParams() {
@@ -57,6 +73,7 @@ export default async function RootLayout({ children, params: paramsPromise }: Ro
         />
       </head>
       <body className={`${inter.variable} ${jakarta.variable} font-sans bg-background text-foreground`}>
+        <GoogleAnalytics />
         <Providers>
           <AuthProvider>
             <Toaster position="bottom-right" toastOptions={{ style: { background: '#334155', color: '#f1f5f9' } }} />
@@ -65,6 +82,7 @@ export default async function RootLayout({ children, params: paramsPromise }: Ro
             <Navbar />
 
             <main className="container mx-auto px-4 py-8 min-h-screen">
+              <AnalyticsTracker />
               {children}
             </main>
 

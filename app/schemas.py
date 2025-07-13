@@ -153,3 +153,73 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+
+
+# --- СХЕМЫ ДЛЯ АНАЛИТИКИ ---
+
+class PageViewCreate(BaseModel):
+    path: str
+    user_agent: Optional[str] = None
+    ip_address: Optional[str] = None
+    referer: Optional[str] = None
+    language: Optional[str] = None
+    tool_id: Optional[int] = None
+
+
+class PageView(BaseModel):
+    id: int
+    path: str
+    user_agent: Optional[str] = None
+    ip_address: Optional[str] = None
+    referer: Optional[str] = None
+    language: Optional[str] = None
+    created_at: datetime.datetime
+    user_id: Optional[int] = None
+    tool_id: Optional[int] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SearchQueryCreate(BaseModel):
+    query: str
+    results_count: int = 0
+    language: Optional[str] = None
+
+
+class SearchQuery(BaseModel):
+    id: int
+    query: str
+    results_count: int
+    language: Optional[str] = None
+    created_at: datetime.datetime
+    user_id: Optional[int] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DailyStats(BaseModel):
+    id: int
+    date: datetime.datetime
+    page_views: int
+    unique_visitors: int
+    new_users: int
+    searches: int
+    tool_views: int
+    reviews_count: int
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdminStats(BaseModel):
+    total_users: int
+    total_tools: int
+    total_reviews: int
+    total_page_views: int
+    total_searches: int
+    unique_visitors_today: int
+    new_users_today: int
+    top_search_queries: List[dict]
+    popular_tools: List[dict]
+    recent_reviews: List[Review]
+    daily_stats: List[DailyStats]
+
+
+class UserWithAdmin(User):
+    is_admin: bool = False

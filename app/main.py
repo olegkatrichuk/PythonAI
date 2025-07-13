@@ -33,12 +33,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="AI Finder API", lifespan=lifespan)
 router = APIRouter(prefix="/api")
 
-# Добавляем rate limiting
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
-
 # Добавляем middleware
-app.add_middleware(RateLimitHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,
     # Временно разрешаем все источники для отладки
@@ -48,7 +43,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Добавляем rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
+app.add_middleware(RateLimitHeadersMiddleware)
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
@@ -70,6 +71,16 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     if user is None:
         raise credentials_exception
     return user
+
+
+async def get_current_admin_user(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Middleware для проверки админских прав."""
+    if not crud.is_user_admin(db, current_user.id):
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. Admin rights required."
+        )
+    return current_user
 
 
 def get_language_from_header(accept_language: Optional[str] = Header("ru")) -> str:
@@ -247,5 +258,97 @@ def read_root(request: Request):
 @apply_read_limit()
 async def read_rate_limit_stats(request: Request):
     return await get_rate_limit_stats()
+
+# --- АДМИНСКИЕ ENDPOINTS ДЛЯ АНАЛИТИКИ ---
+
+@router.get("/admin/stats", response_model=schemas.AdminStats, tags=["admin"])
+@apply_read_limit()
+def get_admin_statistics(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(get_current_admin_user)
+):
+    """Получить статистику для админ панели."""
+    return crud.get_admin_stats(db)
+
+
+@router.post("/admin/daily-stats/update", tags=["admin"])
+@apply_write_limit()
+def update_daily_statistics(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(get_current_admin_user)
+):
+    """Обновить ежедневную статистику."""
+    crud.update_daily_stats(db)
+    return {"message": "Daily statistics updated successfully"}
+
+
+# --- ENDPOINTS ДЛЯ ТРЕКИНГА АНАЛИТИКИ ---
+
+@router.post("/analytics/page-view", response_model=schemas.PageView, tags=["analytics"])
+@apply_write_limit()
+def track_page_view(
+    request: Request,
+    page_view: schemas.PageViewCreate,
+    db: Session = Depends(get_db),
+    token: Optional[str] = Depends(oauth2_scheme_optional)
+):
+    """Отслеживать просмотр страницы."""
+    user_id = None
+    if token:
+        try:
+            payload = jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
+            email = payload.get("sub")
+            if email:
+                user = crud.get_user_by_email(db, email=email)
+                if user:
+                    user_id = user.id
+        except JWTError:
+            pass  # Не авторизован, но это нормально для аналитики
+    
+    return crud.create_page_view(db=db, page_view=page_view, user_id=user_id)
+
+
+@router.post("/analytics/search", response_model=schemas.SearchQuery, tags=["analytics"])
+@apply_write_limit()
+def track_search_query(
+    request: Request,
+    search_query: schemas.SearchQueryCreate,
+    db: Session = Depends(get_db),
+    token: Optional[str] = Depends(oauth2_scheme_optional)
+):
+    """Отслеживать поисковый запрос."""
+    user_id = None
+    if token:
+        try:
+            payload = jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
+            email = payload.get("sub")
+            if email:
+                user = crud.get_user_by_email(db, email=email)
+                if user:
+                    user_id = user.id
+        except JWTError:
+            pass  # Не авторизован, но это нормально для аналитики
+    
+    return crud.create_search_query(db=db, search_query=search_query, user_id=user_id)
+
+
+# --- ENDPOINTS ДЛЯ ПОЛУЧЕНИЯ ПОЛЬЗОВАТЕЛЯ С АДМИНСКИМИ ПРАВАМИ ---
+
+@router.get("/users/me/", response_model=schemas.UserWithAdmin, tags=["users"])
+@apply_read_limit()
+def read_users_me(
+    request: Request,
+    current_user: models.User = Depends(get_current_user)
+):
+    """Получить информацию о текущем пользователе с админскими правами."""
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "is_active": current_user.is_active,
+        "is_admin": current_user.is_admin
+    }
+
 
 app.include_router(router)

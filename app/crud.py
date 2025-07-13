@@ -475,10 +475,10 @@ def create_review(db: Session, review: schemas.ReviewCreate, tool_id: int, autho
     # Получаем данные из схемы
     review_data = review.model_dump()
 
-    # Создаем объект модели вручную, подставляя 'text' в поле 'comment'
+    # Создаем объект модели - поле называется 'text', а не 'comment'
     db_review = models.Review(
         rating=review_data.get('rating'),
-        comment=review_data.get('text'),  # <--- Вот ключевое изменение
+        text=review_data.get('text'),  # Исправлено: используем правильное поле
         tool_id=tool_id,
         author_id=author_id
     )
@@ -523,3 +523,248 @@ def get_reviews_by_tool_slug(db: Session, slug: str, skip: int = 0, limit: int =
             serialized_reviews.append(review_dict)
 
     return serialized_reviews
+
+
+# --- CRUD ФУНКЦИИ ДЛЯ АНАЛИТИКИ ---
+
+def create_page_view(db: Session, page_view: schemas.PageViewCreate, user_id: Optional[int] = None):
+    """Создать запись о просмотре страницы."""
+    db_page_view = models.PageView(
+        path=page_view.path,
+        user_agent=page_view.user_agent,
+        ip_address=page_view.ip_address,
+        referer=page_view.referer,
+        language=page_view.language,
+        user_id=user_id,
+        tool_id=page_view.tool_id
+    )
+    db.add(db_page_view)
+    db.commit()
+    db.refresh(db_page_view)
+    return db_page_view
+
+
+def create_search_query(db: Session, search_query: schemas.SearchQueryCreate, user_id: Optional[int] = None):
+    """Создать запись о поисковом запросе."""
+    db_search_query = models.SearchQuery(
+        query=search_query.query,
+        results_count=search_query.results_count,
+        language=search_query.language,
+        user_id=user_id
+    )
+    db.add(db_search_query)
+    db.commit()
+    db.refresh(db_search_query)
+    return db_search_query
+
+
+def get_admin_stats(db: Session) -> dict:
+    """Получить статистику для админ панели."""
+    from datetime import datetime, timedelta
+    from sqlalchemy import distinct, func
+    
+    today = datetime.now().date()
+    
+    # Общая статистика
+    total_users = db.query(models.User).count()
+    total_tools = db.query(models.Tool).count()
+    total_reviews = db.query(models.Review).count()
+    total_page_views = db.query(models.PageView).count()
+    total_searches = db.query(models.SearchQuery).count()
+    
+    # Статистика за сегодня
+    try:
+        unique_visitors_today = db.query(distinct(models.PageView.ip_address)).filter(
+            func.date(models.PageView.created_at) == today
+        ).count()
+    except:
+        unique_visitors_today = 0
+    
+    # Пока просто ставим 0, так как у User нет created_at
+    new_users_today = 0
+    
+    # Топ поисковых запросов
+    try:
+        top_search_queries = db.query(
+            models.SearchQuery.query,
+            func.count(models.SearchQuery.id).label('count')
+        ).group_by(models.SearchQuery.query).order_by(
+            desc(func.count(models.SearchQuery.id))
+        ).limit(10).all()
+        
+        top_queries_list = [{"query": q.query, "count": q.count} for q in top_search_queries]
+    except:
+        top_queries_list = []
+    
+    # Популярные инструменты (по просмотрам)
+    try:
+        popular_tools = db.query(
+            models.Tool.id,
+            models.Tool.slug,
+            func.count(models.PageView.id).label('views')
+        ).join(
+            models.PageView, models.Tool.id == models.PageView.tool_id
+        ).group_by(
+            models.Tool.id, models.Tool.slug
+        ).order_by(
+            desc(func.count(models.PageView.id))
+        ).limit(10).all()
+    except:
+        popular_tools = []
+    
+    popular_tools_list = []
+    for tool in popular_tools:
+        tool_name = get_tool_name_by_id(db, tool.id)
+        popular_tools_list.append({
+            "id": tool.id,
+            "slug": tool.slug,
+            "name": tool_name,
+            "views": tool.views
+        })
+    
+    # Последние отзывы
+    try:
+        recent_reviews = get_reviews_recent(db, limit=5)
+    except:
+        recent_reviews = []
+    
+    # Статистика по дням (последние 30 дней)
+    try:
+        thirty_days_ago = today - timedelta(days=30)
+        daily_stats = db.query(models.DailyStats).filter(
+            models.DailyStats.date >= thirty_days_ago
+        ).order_by(desc(models.DailyStats.date)).limit(30).all()
+    except:
+        daily_stats = []
+    
+    return {
+        "total_users": total_users,
+        "total_tools": total_tools,
+        "total_reviews": total_reviews,
+        "total_page_views": total_page_views,
+        "total_searches": total_searches,
+        "unique_visitors_today": unique_visitors_today,
+        "new_users_today": new_users_today,
+        "top_search_queries": top_queries_list,
+        "popular_tools": popular_tools_list,
+        "recent_reviews": recent_reviews,
+        "daily_stats": [
+            {
+                "id": stat.id,
+                "date": stat.date.isoformat(),
+                "page_views": stat.page_views,
+                "unique_visitors": stat.unique_visitors,
+                "new_users": stat.new_users,
+                "searches": stat.searches,
+                "tool_views": stat.tool_views,
+                "reviews_count": stat.reviews_count
+            } for stat in daily_stats
+        ]
+    }
+
+
+def get_tool_name_by_id(db: Session, tool_id: int, lang: str = "ru") -> str:
+    """Получить название инструмента по ID."""
+    tool = db.query(models.Tool).filter(models.Tool.id == tool_id).first()
+    if not tool:
+        return "Unknown Tool"
+    
+    populated_tool = _populate_tool_translation_details(tool, lang)
+    return getattr(populated_tool, 'name', 'Unknown Tool')
+
+
+def get_reviews_recent(db: Session, limit: int = 10):
+    """Получить последние отзывы."""
+    reviews = db.query(models.Review).order_by(
+        desc(models.Review.created_at)
+    ).options(joinedload(models.Review.author)).limit(limit).all()
+    
+    serialized_reviews = []
+    for review in reviews:
+        if review:
+            review_dict = {
+                "id": review.id,
+                "rating": review.rating,
+                "text": review.text,
+                "created_at": review.created_at.isoformat() if review.created_at else None,
+                "tool_id": review.tool_id,
+                "author_id": review.author_id,
+            }
+            
+            if hasattr(review, 'author') and review.author:
+                review_dict["author"] = {
+                    "id": review.author.id,
+                    "email": review.author.email,
+                }
+            
+            serialized_reviews.append(review_dict)
+    
+    return serialized_reviews
+
+
+def is_user_admin(db: Session, user_id: int) -> bool:
+    """Проверить, является ли пользователь администратором."""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    return user and user.is_admin
+
+
+def update_daily_stats(db: Session):
+    """Обновить ежедневную статистику."""
+    from datetime import datetime
+    from sqlalchemy import distinct, func
+    
+    today = datetime.now().date()
+    
+    # Проверяем, есть ли уже запись за сегодня
+    existing_stat = db.query(models.DailyStats).filter(
+        func.date(models.DailyStats.date) == today
+    ).first()
+    
+    # Считаем статистику за сегодня
+    page_views = db.query(models.PageView).filter(
+        func.date(models.PageView.created_at) == today
+    ).count()
+    
+    unique_visitors = db.query(distinct(models.PageView.ip_address)).filter(
+        func.date(models.PageView.created_at) == today
+    ).count()
+    
+    new_users = db.query(models.User).filter(
+        func.date(models.User.id) == today
+    ).count()
+    
+    searches = db.query(models.SearchQuery).filter(
+        func.date(models.SearchQuery.created_at) == today
+    ).count()
+    
+    tool_views = db.query(models.PageView).filter(
+        func.date(models.PageView.created_at) == today,
+        models.PageView.tool_id.isnot(None)
+    ).count()
+    
+    reviews_count = db.query(models.Review).filter(
+        func.date(models.Review.created_at) == today
+    ).count()
+    
+    if existing_stat:
+        # Обновляем существующую запись
+        existing_stat.page_views = page_views
+        existing_stat.unique_visitors = unique_visitors
+        existing_stat.new_users = new_users
+        existing_stat.searches = searches
+        existing_stat.tool_views = tool_views
+        existing_stat.reviews_count = reviews_count
+    else:
+        # Создаем новую запись
+        daily_stat = models.DailyStats(
+            date=datetime.now(),
+            page_views=page_views,
+            unique_visitors=unique_visitors,
+            new_users=new_users,
+            searches=searches,
+            tool_views=tool_views,
+            reviews_count=reviews_count
+        )
+        db.add(daily_stat)
+    
+    db.commit()

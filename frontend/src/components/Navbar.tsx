@@ -51,6 +51,11 @@ export default function Navbar() {
                 <Link href={`/${lang}/tool/add`} className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">
                   {t('nav_add_tool')}
                 </Link>
+                {user.is_admin && (
+                  <Link href={`/${lang}/admin`} className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors">
+                    Админ панель
+                  </Link>
+                )}
                 <span className="text-sm text-foreground/60 hidden xl:block">{user.email}</span>
                 <button
                   onClick={handleLogout}

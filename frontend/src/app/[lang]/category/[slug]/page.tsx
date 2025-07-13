@@ -1,6 +1,7 @@
 // frontend/src/app/[lang]/category/[slug]/page.tsx
 
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import type { ITool, ICategory } from '@/types';
 import { getTranslations } from '@/lib/translations';
 import { notFound } from 'next/navigation';
@@ -8,6 +9,7 @@ import { notFound } from 'next/navigation';
 import ToolList from '@/components/ToolList';
 import CategoryFilter from '@/components/CategoryFilter';
 import SearchBar from '@/components/SearchBar';
+import CategoryTracker from '@/components/CategoryTracker';
 
 
 type PageProps = {
@@ -91,6 +93,71 @@ async function getCategories(lang: string): Promise<ICategory[]> {
     }
 }
 
+// Генерация метаданных для страниц категорий
+export async function generateMetadata({ params: paramsPromise }: PageProps): Promise<Metadata> {
+    const params = await paramsPromise;
+    const { lang, slug } = params;
+    const category = await getCategory(slug, lang);
+
+    if (!category) {
+        return {
+            title: 'Категория не найдена',
+            description: 'К сожалению, запрашиваемая категория не найдена.',
+        };
+    }
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const pageUrl = `${siteUrl}/${lang}/category/${slug}`;
+    const pageTitle = `${category.name} AI инструменты | AI Tools Finder`;
+    const pageDescription = `Найдите лучшие AI инструменты в категории ${category.name}. Сравнивайте возможности, цены и отзывы пользователей на AI Tools Finder.`;
+
+    // Генерируем динамическое OG изображение для категории
+    const ogImageParams = new URLSearchParams({
+        title: category.name,
+        description: `AI инструменты категории ${category.name}`,
+        category: category.name,
+        rating: '',
+        price: 'Различные варианты',
+    });
+    const dynamicOgImage = `${siteUrl}/api/og?${ogImageParams.toString()}`;
+
+    return {
+        title: pageTitle,
+        description: pageDescription,
+        alternates: {
+            canonical: pageUrl,
+            languages: {
+                'en': `${siteUrl}/en/category/${slug}`,
+                'ru': `${siteUrl}/ru/category/${slug}`,
+                'uk': `${siteUrl}/uk/category/${slug}`,
+                'x-default': `${siteUrl}/en/category/${slug}`,
+            },
+        },
+        openGraph: {
+            title: pageTitle,
+            description: pageDescription,
+            url: pageUrl,
+            siteName: 'AI Tools Finder',
+            images: [{ 
+                url: dynamicOgImage, 
+                width: 1200, 
+                height: 630, 
+                alt: `${category.name} AI инструменты - AI Tools Finder`,
+                type: 'image/png'
+            }],
+            locale: lang,
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: pageTitle,
+            description: pageDescription,
+            images: [dynamicOgImage],
+            creator: '@ilikenewcoin',
+        },
+    };
+}
+
 export default async function CategoryPage({ params: paramsPromise, searchParams: searchParamsPromise }: PageProps) {
     const params = await paramsPromise;
     const searchParams = await searchParamsPromise;
@@ -113,6 +180,7 @@ export default async function CategoryPage({ params: paramsPromise, searchParams
 
     return (
         <div className="container mx-auto px-4 py-8">
+            <CategoryTracker categoryName={category.name} />
             <div className="text-center mb-12">
                 <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mb-4 font-jakarta">
                     {category.name}

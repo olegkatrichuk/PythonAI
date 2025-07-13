@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import type { ITool } from '@/types';
 import { motion } from 'framer-motion';
+import { trackEvents } from '@/lib/gtag';
 
 // --- ИЗМЕНЕНИЕ 1: Определяем интерфейс для пропсов ---
 // Теперь компонент официально принимает и tool, и lang.
@@ -17,6 +18,11 @@ export default function ToolCard({ tool, lang }: ToolCardProps) {
   // --- ИЗМЕНЕНИЕ 3: Хук useParams больше не нужен, т.к. lang приходит через props ---
   // const params = useParams();
   // const lang = params.lang as string;
+
+  const handleToolClick = () => {
+    // Track tool click event in GA4
+    trackEvents.toolView(tool.name, tool.category?.name || 'Unknown');
+  };
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -35,6 +41,7 @@ export default function ToolCard({ tool, lang }: ToolCardProps) {
       {/* Также используем путь /tool/ (в единственном числе), как вы и хотели. */}
       <Link
         href={`/${lang}/tool/${tool.slug}`}
+        onClick={handleToolClick}
         className="flex flex-col h-full bg-cardBackground p-4 rounded-lg border border-transparent hover:border-primary hover:bg-cardBackground/70 transition-all group"
       >
         <h3 className="font-bold text-md mb-2 text-foreground group-hover:text-primary truncate">

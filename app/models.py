@@ -20,6 +20,7 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
 
     tools = relationship("Tool", back_populates="owner")
     # ИЗМЕНЕНИЕ: Связь теперь с отзывами (Review)
@@ -97,3 +98,49 @@ class CategoryTranslation(Base):
     language_code = Column(String(2), nullable=False)
     name = Column(String, unique=True, index=True)
     category = relationship("Category", back_populates="translations")
+
+
+# --- Модели для аналитики ---
+
+class PageView(Base):
+    __tablename__ = "page_views"
+    id = Column(Integer, primary_key=True, index=True)
+    path = Column(String, nullable=False, index=True)  # URL страницы
+    user_agent = Column(String, nullable=True)  # User-Agent браузера
+    ip_address = Column(String, nullable=True)  # IP адрес
+    referer = Column(String, nullable=True)  # Откуда пришел пользователь
+    language = Column(String(2), nullable=True)  # Язык
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    
+    # Связь с пользователем (если авторизован)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    user = relationship("User")
+    
+    # Связь с инструментом (если это страница инструмента)
+    tool_id = Column(Integer, ForeignKey("tools.id"), nullable=True)
+    tool = relationship("Tool")
+
+
+class SearchQuery(Base):
+    __tablename__ = "search_queries"
+    id = Column(Integer, primary_key=True, index=True)
+    query = Column(String, nullable=False, index=True)  # Поисковый запрос
+    results_count = Column(Integer, default=0)  # Количество найденных результатов
+    language = Column(String(2), nullable=True)  # Язык поиска
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    
+    # Связь с пользователем (если авторизован)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    user = relationship("User")
+
+
+class DailyStats(Base):
+    __tablename__ = "daily_stats"
+    id = Column(Integer, primary_key=True, index=True)
+    date = Column(DateTime(timezone=True), nullable=False, index=True)  # Дата
+    page_views = Column(Integer, default=0)  # Количество просмотров страниц
+    unique_visitors = Column(Integer, default=0)  # Уникальные посетители
+    new_users = Column(Integer, default=0)  # Новые пользователи
+    searches = Column(Integer, default=0)  # Количество поисков
+    tool_views = Column(Integer, default=0)  # Просмотры инструментов
+    reviews_count = Column(Integer, default=0)  # Количество отзывов

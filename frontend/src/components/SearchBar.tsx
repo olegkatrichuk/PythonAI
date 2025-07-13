@@ -5,12 +5,15 @@
 import { useState, FormEvent } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { getTranslations } from '@/lib/translations';
+import { useAnalytics } from '@/lib/analytics';
+import { trackEvents } from '@/lib/gtag';
 
 export default function SearchBar() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
   const lang = params.lang as string;
+  const { trackSearch } = useAnalytics();
 
   const initialQuery = searchParams.get('q') || ''; // Стандартное имя для поиска - 'q'
   const [query, setQuery] = useState(initialQuery);
@@ -25,19 +28,23 @@ export default function SearchBar() {
     return null;
   }
 
-  const handleSearch = (e: FormEvent) => {
+  const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!query.trim()) return;
 
     const newParams = new URLSearchParams(searchParams.toString());
 
-    // Устанавливаем или удаляем поисковый запрос
-    if (query) {
-      newParams.set('q', query); // Используем 'q'
-    } else {
-      newParams.delete('q');
-    }
+    // Устанавливаем поисковый запрос
+    newParams.set('q', query);
     // При новом поиске всегда сбрасываем на первую страницу
     newParams.set('page', '1');
+
+    // Треким поисковый запрос в существующей аналитике
+    trackSearch(query, 0);
+    
+    // Треким поисковый запрос в GA4 (результаты будут подсчитаны позже)
+    trackEvents.search(query, 0);
 
     // ИСПРАВЛЕНИЕ: Перенаправляем на страницу /tool
     router.push(`/${lang}/tool?${newParams.toString()}`);

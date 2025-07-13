@@ -7,6 +7,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import StarRating from '@/components/StarRating';
 import ReviewsSection from '@/components/ReviewsSection';
+import ToolPageTracker from '@/components/ToolPageTracker';
+import ToolSiteButton from '@/components/ToolSiteButton';
 import { apiUrl } from '@/lib/api';
 
 
@@ -62,7 +64,15 @@ export async function generateMetadata({ params: paramsPromise }: PageProps): Pr
     : tool.description
       ? `${tool.description.substring(0, 155)}...`
       : `Узнайте все о ${tool.name}: возможности, цены и отзывы на AI Tools Finder.`;
-  const imageUrl = tool.icon_url || `${siteUrl}/og-image.png`; // Резервное изображение
+  // Генерируем динамическое OG изображение
+  const ogImageParams = new URLSearchParams({
+    title: tool.name,
+    description: pageDescription,
+    category: tool.category?.name || '',
+    rating: tool.average_rating?.toFixed(1) || '0',
+    price: tool.pricing_model ? PRICING_INFO[tool.pricing_model.toLowerCase() as keyof typeof PRICING_INFO]?.text || '' : '',
+  });
+  const dynamicOgImage = `${siteUrl}/api/og?${ogImageParams.toString()}`;
 
   return {
     title: pageTitle,
@@ -81,7 +91,13 @@ export async function generateMetadata({ params: paramsPromise }: PageProps): Pr
       description: pageDescription,
       url: pageUrl,
       siteName: 'AI Tools Finder',
-      images: [{ url: imageUrl, width: 800, height: 600, alt: `${tool.name} icon` }],
+      images: [{ 
+        url: dynamicOgImage, 
+        width: 1200, 
+        height: 630, 
+        alt: `${tool.name} - AI Tools Finder`,
+        type: 'image/png'
+      }],
       locale: lang,
       type: 'website',
     },
@@ -89,7 +105,7 @@ export async function generateMetadata({ params: paramsPromise }: PageProps): Pr
       card: 'summary_large_image',
       title: pageTitle,
       description: pageDescription,
-      images: [imageUrl],
+      images: [dynamicOgImage],
       creator: '@ilikenewcoin',
     },
   };
@@ -171,6 +187,7 @@ export default async function ToolDetailPage({ params: paramsPromise }: PageProp
 
   return (
     <div className="max-w-4xl mx-auto py-12 px-4">
+      <ToolPageTracker toolId={tool.id} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema) }}
@@ -192,14 +209,11 @@ export default async function ToolDetailPage({ params: paramsPromise }: PageProp
               </span>
             )}
           </div>
-          <a
-            href={tool.url}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="w-full text-center bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
-          >
-            Перейти на сайт &rarr;
-          </a>
+          <ToolSiteButton 
+            toolName={tool.name}
+            category={tool.category?.name || 'Unknown'}
+            url={tool.url}
+          />
         </aside>
 
         <article className="md:col-span-2">
