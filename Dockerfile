@@ -1,30 +1,32 @@
 # Используем стабильный образ Python
 FROM python:3.13-slim
 
-# Установка системных зависимостей, необходимых для psycopg2
+# Установка системных зависимостей
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Устанавливаем рабочую директорию
 WORKDIR /app
-
-# Отключаем буферизацию Python для корректного вывода логов
 ENV PYTHONUNBUFFERED=1
 
-# Копируем только файл с зависимостями для кэширования этого слоя
+# Копируем зависимости
 COPY requirements.txt .
-
-# Устанавливаем зависимости из одного источника
-# --no-cache-dir гарантирует чистую установку без кэша pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Копируем весь код приложения
 COPY . .
 
-# Указываем порт, который слушает приложение
+# Копируем наш новый скрипт и делаем его исполняемым
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Указываем, что наш скрипт будет точкой входа
+ENTRYPOINT ["entrypoint.sh"]
+
+# Указываем порт
 EXPOSE 8000
 
-# Команда для запуска ТОЛЬКО веб-сервера. Миграции будут выполняться отдельно.
+# Команда по умолчанию, которая будет передана в entrypoint.sh
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
