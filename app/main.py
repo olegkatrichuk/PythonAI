@@ -14,6 +14,7 @@ import traceback
 from . import crud, models, schemas, security
 from .database import get_db
 from .cache import cache
+from .config import settings
 from .rate_limit import (
     limiter, rate_limit_handler, RateLimitHeadersMiddleware,
     apply_read_limit, apply_search_limit, apply_write_limit,
@@ -34,12 +35,14 @@ app = FastAPI(title="AI Finder API", lifespan=lifespan)
 router = APIRouter(prefix="/api")
 
 # Добавляем middleware
+# Настраиваем CORS в зависимости от окружения
+cors_origins = ["*"] if settings.ENVIRONMENT == "development" else [settings.FRONTEND_URL]
+
 app.add_middleware(
     CORSMiddleware,
-    # Временно разрешаем все источники для отладки
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

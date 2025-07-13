@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     DATABASE_URL: str
     gemini_api_key: Optional[str] = None
+    FRONTEND_URL: str = "http://localhost:3000"
+    ENVIRONMENT: str = "development"
 
 # Создаем единственный экземпляр настроек, который будем импортировать в других файлах
 settings = Settings()

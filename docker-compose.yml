@@ -56,7 +56,7 @@ services:
     depends_on:
       - backend
     environment:
-      BACKEND_API_URL: http://backend:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8000
       NODE_ENV: production
     networks:
       - aifinder-network
