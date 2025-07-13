@@ -113,15 +113,11 @@ export default function RealTimeFilters({
       }
       if (filters.sort) queryParams.set('sort', filters.sort);
       
-      const currentPage = resetPage ? 1 : page;
+      const currentPage = resetPage ? 1 : (searchParams.get('page') ? Number(searchParams.get('page')) : page);
       queryParams.set('page', currentPage.toString());
       queryParams.set('limit', initialLimit.toString());
 
-      // Update URL without refresh
-      const newUrl = `/${lang}/tool?${queryParams.toString()}`;
-      router.replace(newUrl, { scroll: false });
-
-      // Fetch new data with abort signal
+      // Fetch new data with abort signal (no URL update here, it's done by updateFilter)
       const response = await api.get(`/api/tools/?${queryParams.toString()}`, {
         headers: { 'Accept-Language': lang },
         signal: abortControllerRef.current.signal
@@ -130,7 +126,7 @@ export default function RealTimeFilters({
       if (response.data && isMountedRef.current) {
         setTools(response.data.items || []);
         setTotal(response.data.total || 0);
-        if (resetPage) setPage(1);
+        setPage(currentPage);
       }
     } catch (error) {
       // Silently ignore cancelled/aborted requests - these are expected during navigation
@@ -182,7 +178,7 @@ export default function RealTimeFilters({
 
     debounceTimeout.current = setTimeout(() => {
       applyFilters(currentFilters, false);
-    }, 300);
+    }, 150);
 
     return () => {
       if (debounceTimeout.current) {
@@ -205,26 +201,94 @@ export default function RealTimeFilters({
     };
   }, []);
 
-  const updateFilter = (key: keyof FilterState, value: any) => {
+  const updateFilter = useCallback((key: keyof FilterState, value: any) => {
     const newFilters = { ...currentFilters, [key]: value };
     if (value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
       delete newFilters[key];
     }
-    applyFilters(newFilters);
-  };
+    
+    // Update URL immediately but let the debounced effect handle the API call
+    const queryParams = new URLSearchParams();
+    
+    if (newFilters.q) queryParams.set('q', newFilters.q);
+    if (newFilters.category_id) queryParams.set('category_id', newFilters.category_id);
+    if (newFilters.pricing_model) queryParams.set('pricing_model', newFilters.pricing_model);
+    if (newFilters.platforms && newFilters.platforms.length > 0) {
+      queryParams.set('platforms', newFilters.platforms.join(','));
+    }
+    if (newFilters.sort) queryParams.set('sort', newFilters.sort);
+    
+    queryParams.set('page', '1');
+    queryParams.set('limit', initialLimit.toString());
 
-  const togglePlatform = (platform: string) => {
+    const newUrl = `/${lang}/tool?${queryParams.toString()}`;
+    router.replace(newUrl, { scroll: false });
+  }, [currentFilters, lang, router, initialLimit]);
+
+  const togglePlatform = useCallback((platform: string) => {
     const currentPlatforms = currentFilters.platforms || [];
     const newPlatforms = currentPlatforms.includes(platform)
       ? currentPlatforms.filter(p => p !== platform)
       : [...currentPlatforms, platform];
     
     updateFilter('platforms', newPlatforms);
-  };
+  }, [currentFilters.platforms, updateFilter]);
 
   const clearAllFilters = () => {
     router.replace(`/${lang}/tool`, { scroll: false });
   };
+
+  const handlePageChange = useCallback((newPage: number) => {
+    if (newPage < 1 || newPage > Math.ceil(total / initialLimit)) return;
+    
+    const queryParams = new URLSearchParams();
+    
+    if (currentFilters.q) queryParams.set('q', currentFilters.q);
+    if (currentFilters.category_id) queryParams.set('category_id', currentFilters.category_id);
+    if (currentFilters.pricing_model) queryParams.set('pricing_model', currentFilters.pricing_model);
+    if (currentFilters.platforms && currentFilters.platforms.length > 0) {
+      queryParams.set('platforms', currentFilters.platforms.join(','));
+    }
+    if (currentFilters.sort) queryParams.set('sort', currentFilters.sort);
+    
+    queryParams.set('page', newPage.toString());
+    queryParams.set('limit', initialLimit.toString());
+
+    const newUrl = `/${lang}/tool?${queryParams.toString()}`;
+    router.replace(newUrl, { scroll: false });
+    setPage(newPage);
+  }, [currentFilters, lang, router, initialLimit, total]);
+
+  const getPaginationNumbers = useCallback(() => {
+    const totalPages = Math.ceil(total / initialLimit);
+    const numbers: (number | string)[] = [];
+    
+    if (totalPages <= 7) {
+      // Show all pages if 7 or fewer
+      for (let i = 1; i <= totalPages; i++) {
+        numbers.push(i);
+      }
+    } else {
+      // Show ellipsis for many pages
+      if (page <= 4) {
+        for (let i = 1; i <= 5; i++) numbers.push(i);
+        numbers.push('...');
+        numbers.push(totalPages);
+      } else if (page >= totalPages - 3) {
+        numbers.push(1);
+        numbers.push('...');
+        for (let i = totalPages - 4; i <= totalPages; i++) numbers.push(i);
+      } else {
+        numbers.push(1);
+        numbers.push('...');
+        for (let i = page - 1; i <= page + 1; i++) numbers.push(i);
+        numbers.push('...');
+        numbers.push(totalPages);
+      }
+    }
+    
+    return numbers;
+  }, [page, total, initialLimit]);
 
   const hasActiveFilters = Object.values(currentFilters).some(value => 
     value !== undefined && value !== '' && (!Array.isArray(value) || value.length > 0)
@@ -469,17 +533,66 @@ export default function RealTimeFilters({
               transition={{ duration: 0.3 }}
             >
               {tools.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {tools.map((tool, index) => (
-                    <AnimatedCard
-                      key={tool.id}
-                      delay={index * 0.05}
-                      hoverScale={1.02}
-                    >
-                      <ToolCard tool={tool} lang={lang} />
-                    </AnimatedCard>
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    {tools.map((tool, index) => (
+                      <AnimatedCard
+                        key={tool.id}
+                        delay={index * 0.05}
+                        hoverScale={1.02}
+                      >
+                        <ToolCard tool={tool} lang={lang} />
+                      </AnimatedCard>
+                    ))}
+                  </div>
+                  
+                  {/* Pagination */}
+                  {total > initialLimit && (
+                    <div className="mt-8 sm:mt-12 flex justify-center">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <button
+                          onClick={() => handlePageChange(page - 1)}
+                          disabled={page <= 1}
+                          className="px-2 sm:px-4 py-2 rounded-lg border border-foreground/20 text-foreground/70 hover:bg-foreground/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm"
+                        >
+                          <span className="hidden sm:inline">← {t('pagination_prev')}</span>
+                          <span className="sm:hidden">←</span>
+                        </button>
+                        
+                        <div className="flex items-center gap-0.5 sm:gap-1">
+                          {getPaginationNumbers().map((pageNum, index) => (
+                            pageNum === '...' ? (
+                              <span key={index} className="px-2 sm:px-3 py-2 text-foreground/50 text-xs sm:text-sm">
+                                ...
+                              </span>
+                            ) : (
+                              <button
+                                key={index}
+                                onClick={() => handlePageChange(Number(pageNum))}
+                                className={`px-2 sm:px-3 py-2 rounded-lg transition-colors text-xs sm:text-sm ${
+                                  page === Number(pageNum)
+                                    ? 'bg-primary text-primaryForeground'
+                                    : 'text-foreground/70 hover:bg-foreground/5'
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            )
+                          ))}
+                        </div>
+                        
+                        <button
+                          onClick={() => handlePageChange(page + 1)}
+                          disabled={page >= Math.ceil(total / initialLimit)}
+                          className="px-2 sm:px-4 py-2 rounded-lg border border-foreground/20 text-foreground/70 hover:bg-foreground/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm"
+                        >
+                          <span className="hidden sm:inline">{t('pagination_next')} →</span>
+                          <span className="sm:hidden">→</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center py-12">
                   <p className="text-foreground/70 text-lg">{t('tools_not_found')}</p>
