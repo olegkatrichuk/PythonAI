@@ -21,23 +21,39 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
 
-  // --- 2. Создаем функцию для валидации ---
+  // --- 2. Создаем функцию для валидации и санитизации ---
+  const sanitizeInput = (input: string): string => {
+    // Удаляем HTML теги и опасные символы
+    return input
+      .replace(/<[^>]*>/g, '') // Удаляем HTML теги
+      .replace(/[<>'"]/g, '') // Удаляем опасные символы
+      .trim();
+  };
+
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
 
+    // Санитизация входных данных
+    const cleanEmail = sanitizeInput(email);
+    const cleanPassword = password.trim(); // Для пароля только удаляем пробелы
+
     // Валидация Email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
+    if (!cleanEmail) {
       newErrors.email = 'Email обязателен для заполнения.';
-    } else if (!emailRegex.test(email)) {
+    } else if (!emailRegex.test(cleanEmail)) {
       newErrors.email = 'Введите корректный адрес электронной почты.';
+    } else if (cleanEmail.length > 255) {
+      newErrors.email = 'Email слишком длинный.';
     }
 
     // Валидация пароля
-    if (!password) {
+    if (!cleanPassword) {
       newErrors.password = 'Пароль обязателен для заполнения.';
-    } else if (password.length < 8) {
+    } else if (cleanPassword.length < 8) {
       newErrors.password = 'Пароль должен содержать не менее 8 символов.';
+    } else if (cleanPassword.length > 128) {
+      newErrors.password = 'Пароль слишком длинный (максимум 128 символов).';
     }
     // Можно добавить и другие проверки: на наличие цифр, спецсимволов и т.д.
     // else if (!/\d/.test(password)) {
@@ -63,7 +79,14 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await publicApi.post('/api/users/', { email, password });
+      // Отправляем очищенные данные
+      const cleanEmail = sanitizeInput(email);
+      const cleanPassword = password.trim();
+      
+      await publicApi.post('/api/users/', { 
+        email: cleanEmail, 
+        password: cleanPassword 
+      });
 
       toast.success('Регистрация прошла успешно! Теперь вы можете войти.');
       router.push(`/${lang}/login`);

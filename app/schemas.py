@@ -19,6 +19,28 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    
+    @validator('email', pre=True, always=True)
+    def sanitize_email(cls, value):
+        if not value:
+            raise ValueError('Email is required')
+        # Удаляем пробелы и приводим к нижнему регистру
+        cleaned_email = value.strip().lower()
+        # Базовая проверка формата email
+        if '@' not in cleaned_email or '.' not in cleaned_email.split('@')[1]:
+            raise ValueError('Invalid email format')
+        # Удаляем потенциально опасные символы
+        cleaned_email = bleach.clean(cleaned_email, tags=[], strip=True)
+        return cleaned_email
+    
+    @validator('password', pre=True, always=True) 
+    def sanitize_password(cls, value):
+        if not value:
+            raise ValueError('Password is required')
+        if len(value) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        # Удаляем HTML теги из пароля, но сохраняем спецсимволы
+        return bleach.clean(value, tags=[], strip=True)
 
 
 class User(UserBase):
