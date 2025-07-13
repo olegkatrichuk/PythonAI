@@ -7,6 +7,7 @@ import Link from 'next/link';
 import ToolCard from '@/components/ToolCard';
 import FeaturedToolCard from '@/components/FeaturedToolCard';
 import InteractiveHelper from '@/components/InteractiveHelper';
+import FAQSchema from '@/components/FAQSchema';
 import { getTranslations } from '@/lib/translations';
 
 export const dynamic = 'force-dynamic';
@@ -101,6 +102,7 @@ export default async function HomePage({ params: paramsPromise }: PageProps) {
 
   return (
     <div>
+      <FAQSchema lang={lang} />
       {/* Секция "Герой" */}
       <section className="text-center py-20 sm:py-24">
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4 text-foreground font-jakarta">

@@ -8,6 +8,7 @@ import type { ITool, ICategory } from '@/types';
 import ToolList from '@/components/ToolList';
 import CategoryFilter from '@/components/CategoryFilter';
 import SearchBar from '@/components/SearchBar';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 
 // Определяем простой и понятный тип для пропсов
@@ -66,20 +67,86 @@ async function getCategories(lang: string): Promise<ICategory[]> {
     }
 }
 
-// Возвращаем метаданные к простому виду для Next.js 15
-export async function generateMetadata({ params: paramsPromise }: ToolsPageProps): Promise<Metadata> {
+// Enhanced metadata with canonical URLs for filtered content
+export async function generateMetadata({ params: paramsPromise, searchParams: searchParamsPromise }: ToolsPageProps): Promise<Metadata> {
     const params = await paramsPromise;
+    const searchParams = await searchParamsPromise;
     const { lang } = params;
     const t = getTranslations(lang);
-    const siteUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-    // ... остальная логика для метаданных остается без изменений ...
+    // Build canonical URL based on search parameters
+    const cleanParams = new URLSearchParams();
+    const category_id = searchParams.category_id;
+    const q = searchParams.q;
+    
+    // Only add parameters that should be indexed
+    if (category_id && typeof category_id === 'string') {
+        cleanParams.set('category_id', category_id);
+    }
+    if (q && typeof q === 'string') {
+        cleanParams.set('q', q);
+    }
+    
+    const canonicalPath = cleanParams.toString() 
+        ? `${siteUrl}/${lang}/tool?${cleanParams.toString()}`
+        : `${siteUrl}/${lang}/tool`;
+
+    // Generate dynamic title and description based on filters
+    let pageTitle = t('tools_page_title');
+    let pageDescription = t('tools_page_intro_text');
+    
+    if (q && typeof q === 'string') {
+        pageTitle = `${q} - ${t('tools_page_title')}`;
+        pageDescription = `Find AI tools related to "${q}". ${t('tools_page_intro_text')}`;
+    }
+
+    // Enhanced keywords based on search context
+    const keywords = [
+        'AI tools catalog', 'нейросети каталог', 'artificial intelligence',
+        'machine learning tools', 'neural networks', 'AI applications',
+        'productivity AI', 'business automation', 'creative AI tools',
+        'AI software directory', 'ML platforms', 'deep learning tools'
+    ];
+
+    if (q && typeof q === 'string') {
+        keywords.push(q, `${q} AI`, `${q} tool`, `${q} neural network`);
+    }
 
     return {
-        title: t('tools_page_title'),
-        description: t('tools_page_description'),
+        title: pageTitle,
+        description: pageDescription,
+        keywords,
+        authors: [{ name: 'GetAIFind Team' }],
+        creator: 'GetAIFind',
+        publisher: 'GetAIFind',
         alternates: {
-            canonical: `${siteUrl}/${lang}/tools`,
+            canonical: canonicalPath,
+            languages: {
+                'en': `${siteUrl}/en/tool${cleanParams.toString() ? `?${cleanParams.toString()}` : ''}`,
+                'ru': `${siteUrl}/ru/tool${cleanParams.toString() ? `?${cleanParams.toString()}` : ''}`,
+                'uk': `${siteUrl}/uk/tool${cleanParams.toString() ? `?${cleanParams.toString()}` : ''}`,
+                'x-default': `${siteUrl}/en/tool${cleanParams.toString() ? `?${cleanParams.toString()}` : ''}`,
+            },
+        },
+        robots: {
+            index: true,
+            follow: true,
+            googleBot: {
+                index: true,
+                follow: true,
+                'max-video-preview': -1,
+                'max-image-preview': 'large',
+                'max-snippet': -1,
+            },
+        },
+        openGraph: {
+            title: pageTitle,
+            description: pageDescription,
+            url: canonicalPath,
+            siteName: 'AI Tools Finder',
+            locale: lang,
+            type: 'website',
         },
     };
 }
@@ -106,6 +173,7 @@ export default async function ToolsPage({ params: paramsPromise, searchParams: s
 
     return (
         <div>
+            <Breadcrumbs lang={lang} />
             <h1 className="text-4xl sm:text-5xl font-extrabold text-center mb-4">
                 {t('tools_page_title')}
             </h1>

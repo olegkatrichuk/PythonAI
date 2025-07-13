@@ -9,6 +9,7 @@ import StarRating from '@/components/StarRating';
 import ReviewsSection from '@/components/ReviewsSection';
 import ToolPageTracker from '@/components/ToolPageTracker';
 import ToolSiteButton from '@/components/ToolSiteButton';
+import Breadcrumbs from '@/components/Breadcrumbs';
 import { apiUrl } from '@/lib/api';
 
 
@@ -74,9 +75,28 @@ export async function generateMetadata({ params: paramsPromise }: PageProps): Pr
   });
   const dynamicOgImage = `${siteUrl}/api/og?${ogImageParams.toString()}`;
 
+  // Generate comprehensive keywords based on tool data
+  const toolKeywords = [
+    tool.name,
+    tool.category?.name || '',
+    'AI tool',
+    'нейросеть',
+    'artificial intelligence',
+    'machine learning',
+    ...(tool.platforms || []),
+    tool.pricing_model || '',
+    'reviews',
+    'rating',
+    'neural network'
+  ].filter(Boolean);
+
   return {
     title: pageTitle,
     description: pageDescription,
+    keywords: toolKeywords,
+    authors: [{ name: 'GetAIFind Team' }],
+    creator: 'GetAIFind',
+    publisher: 'GetAIFind',
     alternates: {
       canonical: pageUrl,
       languages: {
@@ -84,6 +104,17 @@ export async function generateMetadata({ params: paramsPromise }: PageProps): Pr
         'ru': `${siteUrl}/ru/tool/${slug}`,
         'uk': `${siteUrl}/uk/tool/${slug}`,
         'x-default': `${siteUrl}/en/tool/${slug}`,
+      },
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
       },
     },
     openGraph: {
@@ -187,6 +218,11 @@ export default async function ToolDetailPage({ params: paramsPromise }: PageProp
 
   return (
     <div className="max-w-4xl mx-auto py-12 px-4">
+      <Breadcrumbs 
+        lang={lang} 
+        toolName={tool.name}
+        categoryName={tool.category?.name}
+      />
       <ToolPageTracker toolId={tool.id} />
       <script
         type="application/ld+json"

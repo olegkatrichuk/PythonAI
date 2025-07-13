@@ -18,6 +18,21 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: { default: "AI Tools Finder", template: "%s | AI Tools Finder" },
   description: "Находите и сравнивайте лучшие AI-инструменты.",
+  keywords: [
+    'AI tools', 'нейросети', 'искусственный интеллект', 'machine learning',
+    'neural networks', 'chatbot', 'GPT', 'каталог нейросетей',
+    'AI инструменты', 'artificial intelligence', 'deep learning',
+    'computer vision', 'natural language processing', 'automation',
+    'productivity tools', 'business AI', 'creative AI', 'образование AI'
+  ],
+  authors: [{ name: 'GetAIFind Team', url: 'https://getaifind.com' }],
+  creator: 'GetAIFind',
+  publisher: 'GetAIFind',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   openGraph: {
     title: "AI Tools Finder",
     description: "Находите и сравнивайте лучшие AI-инструменты.",
@@ -25,12 +40,36 @@ export const metadata: Metadata = {
     siteName: 'AI Tools Finder',
     locale: 'ru',
     type: 'website',
+    images: [
+      {
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: 'AI Tools Finder - Каталог лучших AI инструментов',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: "AI Tools Finder",
     description: "Находите и сравнивайте лучшие AI-инструменты.",
     creator: '@ilikenewcoin',
+    images: [`${process.env.NEXT_PUBLIC_SITE_URL}/og-image.png`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'your-google-site-verification',
+    yandex: 'your-yandex-verification',
   },
 };
 
@@ -56,11 +95,44 @@ export default async function RootLayout({ children, params: paramsPromise }: Ro
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "AI Tools Finder",
+    "alternateName": "GetAIFind",
     "url": siteUrl,
+    "description": "Comprehensive catalog of AI tools and neural networks for professionals and enthusiasts",
+    "publisher": {
+      "@type": "Organization",
+      "name": "GetAIFind",
+      "url": siteUrl,
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${siteUrl}/logo.png`
+      }
+    },
     "potentialAction": {
       "@type": "SearchAction",
-      "target": `${siteUrl}/search?q={search_term_string}`,
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": `${siteUrl}/${params.lang}/tool?q={search_term_string}`
+      },
       "query-input": "required name=search_term_string"
+    },
+    "sameAs": [
+      "https://twitter.com/ilikenewcoin",
+      "https://github.com/getaifind"
+    ]
+  };
+
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "GetAIFind",
+    "url": siteUrl,
+    "logo": `${siteUrl}/logo.png`,
+    "description": "Leading platform for discovering and comparing AI tools and neural networks",
+    "foundingDate": "2024",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "email": "support@getaifind.com"
     }
   };
 
@@ -70,6 +142,10 @@ export default async function RootLayout({ children, params: paramsPromise }: Ro
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
       </head>
       <body className={`${inter.variable} ${jakarta.variable} font-sans bg-background text-foreground`}>
