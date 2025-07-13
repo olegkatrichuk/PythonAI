@@ -369,8 +369,8 @@ def read_users_me(
     return {
         "id": current_user.id,
         "email": current_user.email,
-        "is_active": current_user.is_active,
-        "is_admin": current_user.is_admin
+        "is_active": current_user.is_active if current_user.is_active is not None else True,
+        "is_admin": current_user.is_admin if current_user.is_admin is not None else False
     }
 
 
