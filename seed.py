@@ -14,7 +14,7 @@ from app import models
 from app.models import Base  # Импортируем Base для создания таблиц
 
 # --- 1. КОНФИГУРАЦИЯ КАТЕГОРИЙ (ВАЖНО!) ---
-CATEGORIES_CONFIG =  {
+CATEGORIES_CONFIG =   {
     "Генерация текста": {"en": "Text Generation", "uk": "Генерація тексту",
                          "keywords": ["text", "writing", "copywriting", "gpt", "llm", "translator"]},
     "Генерация изображений": {"en": "Image Generation", "uk": "Генерація зображень",
