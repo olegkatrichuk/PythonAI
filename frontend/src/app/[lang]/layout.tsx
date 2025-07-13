@@ -20,7 +20,7 @@ import { InitialLoadWrapper, NavbarAnimation, FooterAnimation } from "@/componen
 import { HydrationSafeWrapper } from "@/components/SmoothLoader";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.getaifind.com'),
   title: { default: "AI Tools Finder", template: "%s | AI Tools Finder" },
   description: "Находите и сравнивайте лучшие AI-инструменты.",
   keywords: [

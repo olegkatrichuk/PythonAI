@@ -26,7 +26,6 @@ interface ApiResponse {
 async function getTools(lang: string, searchParams: URLSearchParams): Promise<ApiResponse> {
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/tools/?${searchParams.toString()}`;
 
-    console.log(`[SERVER DEBUG] Запрашиваю URL: ${apiUrl}`);
 
     try {
         const res = await fetch(apiUrl, {
