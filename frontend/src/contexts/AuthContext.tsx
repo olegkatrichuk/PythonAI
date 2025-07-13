@@ -4,6 +4,7 @@
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { trackEvents, setCustomDimensions } from '@/lib/gtag';
+import { api } from '@/lib/api';
 
 interface DecodedToken {
   sub: string;
@@ -49,35 +50,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      // Жестко задаем URL, так как переменные окружения не подхватываются
-      const apiUrl = 'http://localhost:8000';
-      console.log('API URL:', apiUrl);
       console.log('Stored token:', storedToken?.substring(0, 20) + '...');
-      console.log('Fetching user info from:', `${apiUrl}/api/users/me/`);
+      console.log('Fetching user info from API');
       
-      const response = await fetch(`${apiUrl}/api/users/me/`, {
-        headers: {
-          'Authorization': `Bearer ${storedToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await api.get('/api/users/me/');
 
       console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
+      console.log('Response data:', response.data);
 
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-        setToken(storedToken);
-        
-        // Track user login success and set custom dimensions
-        setCustomDimensions(userData);
-      } else {
-        console.error('Failed to fetch user info:', response.status);
-        localStorage.removeItem('accessToken');
-        setToken(null);
-        setUser(null);
-      }
+      setUser(response.data);
+      setToken(storedToken);
+      
+      // Track user login success and set custom dimensions
+      setCustomDimensions(response.data);
     } catch (error) {
       console.error('Error fetching user info:', error);
       localStorage.removeItem('accessToken');

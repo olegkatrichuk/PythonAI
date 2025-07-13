@@ -8,8 +8,8 @@ import { useRouter, useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { AuthContext } from '@/contexts/AuthContext';
 import { getTranslations } from '@/lib/translations';
-import { apiUrl } from '@/lib/api';
-import axios, { isAxiosError } from 'axios';
+import { publicApi } from '@/lib/api';
+import { isAxiosError } from 'axios';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,8 +44,7 @@ export default function LoginPage() {
     formData.append('password', password);
 
     try {
-      const tokenApiUrl = `${apiUrl}/api/token`;
-      const response = await axios.post(tokenApiUrl, formData, {
+      const response = await publicApi.post('/api/token', formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
 

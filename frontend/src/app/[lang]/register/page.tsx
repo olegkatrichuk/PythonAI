@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { getTranslations } from '@/lib/translations';
-import { apiUrl } from '@/lib/api';
-import axios, { isAxiosError } from 'axios';
+import { publicApi } from '@/lib/api';
+import { isAxiosError } from 'axios';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -63,8 +63,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const registrationUrl = `${apiUrl}/api/users/`;
-      await axios.post(registrationUrl, { email, password });
+      await publicApi.post('/api/users/', { email, password });
 
       toast.success('Регистрация прошла успешно! Теперь вы можете войти.');
       router.push(`/${lang}/login`);

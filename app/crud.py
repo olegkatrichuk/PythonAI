@@ -67,12 +67,20 @@ def get_user_by_email(db: Session, email: str):
 
 def create_user(db: Session, user: schemas.UserCreate):
     """Создает нового пользователя."""
+    from sqlalchemy.exc import IntegrityError
+    
     hashed_password = security.get_password_hash(user.password)
     db_user = models.User(email=user.email, hashed_password=hashed_password)
     db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    
+    try:
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except IntegrityError:
+        db.rollback()
+        # Пусть основной код в main.py обработает проверку дублирования
+        raise
 
 
 def get_tools_by_owner(db: Session, owner_id: int, lang: str = "ru"):

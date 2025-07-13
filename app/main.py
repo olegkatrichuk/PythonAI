@@ -36,14 +36,27 @@ router = APIRouter(prefix="/api")
 
 # Добавляем middleware
 # Настраиваем CORS в зависимости от окружения
-cors_origins = ["*"] if settings.ENVIRONMENT == "development" else [settings.FRONTEND_URL]
+if settings.ENVIRONMENT == "development":
+    cors_origins = [
+        "http://localhost:3000",
+        "http://localhost:3001", 
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+    ]
+else:
+    cors_origins = [
+        "https://www.getaifind.com",
+        "https://getaifind.com",
+        settings.FRONTEND_URL,
+    ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Добавляем rate limiting
@@ -108,6 +121,9 @@ def create_new_user(request: Request, user: schemas.UserCreate, db: Session = De
         print(f"--- ПОЛЬЗОВАТЕЛЬ {user.email} УСПЕШНО СОЗДАН ---")
         return created_user
 
+    except HTTPException:
+        # Перебрасываем HTTPException как есть (например, дублированный email)
+        raise
     except Exception as e:
         # Если произойдет ЛЮБАЯ ошибка, мы ее здесь поймаем и запишем в лог.
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -116,6 +132,10 @@ def create_new_user(request: Request, user: schemas.UserCreate, db: Session = De
         traceback.print_exc()  # Печатаем полный путь ошибки (traceback)
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
+        # Проверяем на IntegrityError от базы данных  
+        if "unique constraint" in str(e).lower() or "duplicate" in str(e).lower():
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
         # Возвращаем стандартную ошибку 500
         raise HTTPException(status_code=500, detail="Internal server error during user creation.")
     # --- КОНЕЦ БЛОКА ДИАГНОСТИКИ ---

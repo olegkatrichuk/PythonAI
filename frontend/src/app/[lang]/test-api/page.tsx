@@ -1,26 +1,16 @@
 'use client'
 
+import { api, publicApi } from '@/lib/api'
+
 export default function TestAPI() {
   const testAPI = async () => {
     try {
       console.log('Testing API connection...');
-      const response = await fetch('http://localhost:8000/', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await api.get('/');
       
       console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Response data:', data);
-        alert('API работает! Ответ: ' + JSON.stringify(data));
-      } else {
-        alert('API не отвечает. Статус: ' + response.status);
-      }
+      console.log('Response data:', response.data);
+      alert('API работает! Ответ: ' + JSON.stringify(response.data));
     } catch (error) {
       console.error('Error:', error);
       alert('Ошибка подключения: ' + error);
@@ -30,27 +20,22 @@ export default function TestAPI() {
   const testLogin = async () => {
     try {
       console.log('Testing login...');
-      const formData = new FormData();
+      const formData = new URLSearchParams();
       formData.append('username', 'admin@test.com');
       formData.append('password', 'admin123');
 
-      const response = await fetch('http://localhost:8000/api/token', {
-        method: 'POST',
-        body: formData,
+      const response = await publicApi.post('/api/token', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
       });
       
       console.log('Login response status:', response.status);
+      console.log('Login response data:', response.data);
+      alert('Логин успешен! Токен: ' + response.data.access_token.substring(0, 20) + '...');
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Login response data:', data);
-        alert('Логин успешен! Токен: ' + data.access_token.substring(0, 20) + '...');
-        
-        // Сохраняем токен для дальнейшего использования
-        localStorage.setItem('accessToken', data.access_token);
-      } else {
-        alert('Ошибка логина. Статус: ' + response.status);
-      }
+      // Сохраняем токен для дальнейшего использования
+      localStorage.setItem('accessToken', response.data.access_token);
     } catch (error) {
       console.error('Login error:', error);
       alert('Ошибка логина: ' + error);
@@ -66,23 +51,11 @@ export default function TestAPI() {
       }
 
       console.log('Testing user info...');
-      const response = await fetch('http://localhost:8000/api/users/me/', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await api.get('/api/users/me/');
       
       console.log('User info response status:', response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('User info data:', data);
-        alert('Пользователь: ' + JSON.stringify(data));
-      } else {
-        alert('Ошибка получения пользователя. Статус: ' + response.status);
-      }
+      console.log('User info data:', response.data);
+      alert('Пользователь: ' + JSON.stringify(response.data));
     } catch (error) {
       console.error('User info error:', error);
       alert('Ошибка получения пользователя: ' + error);

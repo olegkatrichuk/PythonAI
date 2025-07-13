@@ -1,4 +1,5 @@
 // Библиотека для трекинга аналитики
+import { api } from '@/lib/api';
 
 interface PageViewData {
   path: string;
@@ -16,29 +17,17 @@ interface SearchQueryData {
 }
 
 class Analytics {
-  private apiUrl: string;
-
-  constructor() {
-    // Жестко задаем URL, так как переменные окружения не подхватываются в некоторых контекстах
-    this.apiUrl = 'http://localhost:8000';
-  }
 
   private async sendRequest(endpoint: string, data: any) {
     try {
       const token = localStorage.getItem('accessToken');
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
+      const headers: any = {};
 
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      await fetch(`${this.apiUrl}/api${endpoint}`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(data),
-      });
+      await api.post(endpoint, data, { headers });
     } catch (error) {
       console.warn('Analytics tracking failed:', error);
     }
@@ -55,7 +44,7 @@ class Analytics {
       tool_id: toolId,
     };
 
-    this.sendRequest('/analytics/page-view', data);
+    this.sendRequest('/api/analytics/page-view', data);
   }
 
   trackSearch(query: string, resultsCount: number) {
@@ -67,7 +56,7 @@ class Analytics {
       language: navigator.language.split('-')[0],
     };
 
-    this.sendRequest('/analytics/search', data);
+    this.sendRequest('/api/analytics/search', data);
   }
 
   // Автоматический трекинг при загрузке страницы

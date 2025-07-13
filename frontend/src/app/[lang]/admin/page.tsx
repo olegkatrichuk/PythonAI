@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Wrench, MessageSquare, Eye, Search, TrendingUp } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
+import { api } from '@/lib/api'
 
 interface AdminStats {
   total_users: number
@@ -56,23 +57,16 @@ export default function AdminDashboard() {
   const fetchAdminStats = async () => {
     try {
       setLoading(true)
-      // Жестко задаем URL, так как переменные окружения не подхватываются
-      const apiUrl = 'http://localhost:8000'
-      console.log('Fetching admin stats from:', `${apiUrl}/api/admin/stats`);
+      console.log('Fetching admin stats from API');
       console.log('Using token:', token);
-      const response = await fetch(`${apiUrl}/api/admin/stats`, {
+      
+      const response = await api.get('/api/admin/stats', {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+          'Authorization': `Bearer ${token}`
+        }
       })
 
-      if (!response.ok) {
-        throw new Error('Ошибка получения статистики')
-      }
-
-      const data = await response.json()
-      setStats(data)
+      setStats(response.data)
     } catch (error) {
       console.error('Ошибка:', error)
       setError('Не удалось загрузить статистику')

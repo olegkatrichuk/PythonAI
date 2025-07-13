@@ -3,9 +3,10 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation'; // <-- 1. ИСПРАВЛЕНО: Добавляем useRouter
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import type { ITool, ICategory } from '@/types'; // <-- 2. ИСПРАВЛЕНО: Импортируем типы из центрального файла
+import type { ITool, ICategory } from '@/types';
+import { api } from '@/lib/api';
 
 // 3. ИСПРАВЛЕНО: Убираем onToolAdded из пропсов. Форма больше не зависит от родителя.
 interface AddToolFormProps {
@@ -44,20 +45,11 @@ export default function AddToolForm({ categories }: AddToolFormProps) {
     };
 
     await toast.promise(
-        fetch('http://localhost:8000/tools/', {
-            method: 'POST',
-            // 7. ИСПРАВЛЕНО: Добавляем заголовок авторизации
+        api.post('/api/tools/', newToolData, {
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(newToolData),
-        }).then(async (response) => {
-            if (!response.ok) {
-                const errorData = await response.json();
-                // Показываем ошибку с сервера
-                throw new Error(errorData.detail || 'Ошибка при добавлении инструмента');
             }
+        }).then((response) => {
             // Данные были успешно отправлены
             // Очищаем все поля
             setName('');
@@ -65,8 +57,7 @@ export default function AddToolForm({ categories }: AddToolFormProps) {
             setDescription('');
             setCategoryId('');
 
-            // 8. ИСПРАВЛЕНО: Вместо вызова onToolAdded, мы обновляем страницу.
-            // Это заставит Next.js заново загрузить данные для серверных компонентов.
+            // Обновляем страницу
             router.refresh();
         }),
         {
