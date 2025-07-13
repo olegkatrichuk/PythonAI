@@ -50,7 +50,7 @@ packaging==25.0
 pandas==2.3.0
 pandas-stubs==2.2.3.250527
 parsimonious==0.10.0
-passlib==1.7.4
+passlib[bcrypt]==1.7.4
 patsy==1.0.1
 propcache==0.3.2
 psycopg2-binary==2.9.10
