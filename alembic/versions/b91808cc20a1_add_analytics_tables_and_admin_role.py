@@ -1,7 +1,7 @@
 """Add analytics tables and admin role
 
 Revision ID: b91808cc20a1
-Revises: d4dab894150b
+Revises: 7e34f0a21d66
 Create Date: 2025-07-13 09:37:11.284236
 
 """
@@ -13,7 +13,8 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = 'b91808cc20a1'
-down_revision: Union[str, None] = 'd4dab894150b'
+# 🔴 ИСПРАВЛЕНО: Эта миграция теперь зависит от миграции, добавляющей Primary Key
+down_revision: Union[str, None] = '7e34f0a21d66'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
