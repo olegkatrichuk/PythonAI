@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -38,23 +38,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!user && !authLoading) {
-      router.push('/login')
-      return
-    }
-
-    if (user && !user.is_admin) {
-      router.push('/')
-      return
-    }
-
-    if (user && user.is_admin && token) {
-      fetchAdminStats()
-    }
-  }, [user, token, authLoading, router])
-
-  const fetchAdminStats = async () => {
+  const fetchAdminStats = useCallback(async () => {
     try {
       setLoading(true)
       console.log('Fetching admin stats from API');
@@ -73,7 +57,23 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [token])
+
+  useEffect(() => {
+    if (!user && !authLoading) {
+      router.push('/login')
+      return
+    }
+
+    if (user && !user.is_admin) {
+      router.push('/')
+      return
+    }
+
+    if (user && user.is_admin && token) {
+      fetchAdminStats()
+    }
+  }, [user, token, authLoading, router, fetchAdminStats])
 
   if (loading || authLoading) {
     return (

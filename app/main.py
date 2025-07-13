@@ -18,7 +18,7 @@ from .config import settings
 from .rate_limit import (
     limiter, rate_limit_handler, RateLimitHeadersMiddleware,
     apply_read_limit, apply_search_limit, apply_write_limit,
-    apply_auth_limit, get_rate_limit_stats
+    apply_auth_limit, apply_analytics_limit, get_rate_limit_stats
 )
 from slowapi.errors import RateLimitExceeded
 
@@ -127,7 +127,7 @@ def create_new_user(request: Request, user: schemas.UserCreate, db: Session = De
     except Exception as e:
         # Если произойдет ЛЮБАЯ ошибка, мы ее здесь поймаем и запишем в лог.
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        print(f"!!!!!!!!!! КРИТИЧЕСКАЯ ОШИБКА ПРИ РЕГИСТРАЦИИ !!!!!!!!!!")
+        print("!!!!!!!!!! КРИТИЧЕСКАЯ ОШИБКА ПРИ РЕГИСТРАЦИИ !!!!!!!!!!")
         print(f"!!!!!!!!!! ТИП ОШИБКИ: {type(e).__name__}, СООБЩЕНИЕ: {e} !!!!!!!!!!")
         traceback.print_exc()  # Печатаем полный путь ошибки (traceback)
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -310,7 +310,7 @@ def update_daily_statistics(
 # --- ENDPOINTS ДЛЯ ТРЕКИНГА АНАЛИТИКИ ---
 
 @router.post("/analytics/page-view", response_model=schemas.PageView, tags=["analytics"])
-@apply_write_limit()
+@apply_analytics_limit()
 def track_page_view(
     request: Request,
     page_view: schemas.PageViewCreate,
@@ -372,6 +372,41 @@ def read_users_me(
         "is_active": current_user.is_active if current_user.is_active is not None else True,
         "is_admin": current_user.is_admin if current_user.is_admin is not None else False
     }
+
+
+# --- ENDPOINTS ДЛЯ АВТОДОПОЛНЕНИЯ ---
+
+@router.get("/tools/search-suggestions", response_model=schemas.ToolPage, tags=["tools"])
+@apply_search_limit()
+def get_tool_search_suggestions(
+    request: Request,
+    q: str,
+    limit: int = 5,
+    lang: str = Depends(get_language_from_header),
+    db: Session = Depends(get_db)
+):
+    """Получить предложения для автодополнения поиска инструментов."""
+    if not q.strip() or len(q.strip()) < 2:
+        return {"items": [], "total": 0}
+    
+    tools = crud.search_tools_for_autocomplete(db=db, query=q, limit=limit, lang=lang)
+    return {"items": tools, "total": len(tools)}
+
+
+@router.get("/categories/search", response_model=List[schemas.Category], tags=["categories"])
+@apply_search_limit()
+def search_categories_for_autocomplete(
+    request: Request,
+    q: str,
+    limit: int = 3,
+    lang: str = Depends(get_language_from_header),
+    db: Session = Depends(get_db)
+):
+    """Поиск категорий для автодополнения."""
+    if not q.strip() or len(q.strip()) < 2:
+        return []
+    
+    return crud.search_categories_for_autocomplete(db=db, query=q, limit=limit, lang=lang)
 
 
 app.include_router(router)

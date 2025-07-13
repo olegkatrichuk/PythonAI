@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { getTranslations } from '@/lib/translations';
 import { publicApi } from '@/lib/api';
 import { isAxiosError } from 'axios';
+import { FormAnimation } from '@/components/SmoothAnimations';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -116,7 +117,7 @@ export default function RegisterPage() {
 
   return (
     <div className="flex flex-col items-center justify-center py-12">
-      <div className="w-full max-w-md p-8 space-y-6 bg-slate-800 rounded-lg shadow-lg">
+      <FormAnimation className="w-full max-w-md p-8 space-y-6 bg-slate-800 rounded-lg shadow-lg">
         <h1 className="text-3xl font-bold text-center">
           {t('nav_register')}
         </h1>
@@ -175,7 +176,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 disabled:bg-blue-800 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 disabled:bg-blue-800 disabled:cursor-not-allowed transform transition-all duration-200 hover:scale-105 active:scale-95"
             >
               {loading ? 'Регистрация...' : t('nav_register')}
             </button>
@@ -187,7 +188,7 @@ export default function RegisterPage() {
             {t('nav_login')}
           </Link>
         </p>
-      </div>
+      </FormAnimation>
     </div>
   );
 }

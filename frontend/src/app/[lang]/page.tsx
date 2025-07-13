@@ -9,6 +9,8 @@ import FeaturedToolCard from '@/components/FeaturedToolCard';
 import InteractiveHelper from '@/components/InteractiveHelper';
 import FAQSchema from '@/components/FAQSchema';
 import { getTranslations } from '@/lib/translations';
+import { PageHeader, ToolsGrid, GridItem, AnimatedButton } from '@/components/SmoothAnimations';
+import { SectionTransition } from '@/components/PageTransition';
 
 export const dynamic = 'force-dynamic';
 
@@ -103,53 +105,69 @@ export default async function HomePage({ params: paramsPromise }: PageProps) {
   return (
     <div>
       <FAQSchema lang={lang} />
+      
       {/* Секция "Герой" */}
-      <section className="text-center py-20 sm:py-24">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4 text-foreground font-jakarta">
-          {t('home_title')}
-        </h1>
-        <p className="text-lg text-foreground/70 max-w-2xl mx-auto mb-8">
-          {t('home_subtitle')}
-        </p>
-
-        <Link
-          href={`/${lang}/tool`}
-          className="inline-block bg-primary text-primaryForeground font-bold py-3 px-8 rounded-lg text-lg hover:bg-primary/90 transition-colors shadow-lg"
-        >
-          {t('home_view_all_tools')}
-        </Link>
+      <section className="py-20 sm:py-24">
+        <PageHeader 
+          title={t('home_title')}
+          subtitle={t('home_subtitle')}
+        />
+        
+        <SectionTransition delay={0.6}>
+          <div className="text-center">
+            <Link href={`/${lang}/tool`}>
+              <AnimatedButton className="py-3 px-8 text-lg shadow-lg">
+                {t('home_view_all_tools')}
+              </AnimatedButton>
+            </Link>
+          </div>
+        </SectionTransition>
       </section>
 
       {/* Категории */}
       {categories && categories.length > 0 && (
-        <section className="max-w-5xl mx-auto py-16">
-          <h2 className="text-3xl font-bold text-center mb-12 text-foreground font-jakarta">{t('home_what_to_do')}</h2>
-          <InteractiveHelper categories={categories} lang={lang} />
-        </section>
+        <SectionTransition delay={0.2}>
+          <section className="max-w-5xl mx-auto py-16">
+            <h2 className="text-3xl font-bold text-center mb-12 text-foreground font-jakarta">
+              {t('home_what_to_do')}
+            </h2>
+            <InteractiveHelper categories={categories} lang={lang} />
+          </section>
+        </SectionTransition>
       )}
 
       {/* Инструмент дня */}
       {featuredToolResponse?.items?.length > 0 && (
-        <section className="max-w-4xl mx-auto py-16">
-          <h2 className="text-3xl font-bold text-center mb-12 text-foreground font-jakarta">{t('home_tool_of_the_day')}</h2>
-          <FeaturedToolCard
-            tool={featuredToolResponse.items[0]}
-            lang={lang}
-            buttonText={t('learn_more_button')}
-          />
-        </section>
+        <SectionTransition delay={0.4}>
+          <section className="max-w-4xl mx-auto py-16">
+            <h2 className="text-3xl font-bold text-center mb-12 text-foreground font-jakarta">
+              {t('home_tool_of_the_day')}
+            </h2>
+            <FeaturedToolCard
+              tool={featuredToolResponse.items[0]}
+              lang={lang}
+              buttonText={t('learn_more_button')}
+            />
+          </section>
+        </SectionTransition>
       )}
 
       {/* Новинки */}
       {latestToolsResponse?.items?.length > 0 && (
-        <section className="py-16">
-          <h2 className="text-3xl font-bold text-center mb-12 text-foreground font-jakarta">{t('home_new_arrivals')}</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {latestToolsResponse.items.map((tool: ITool) => (
-              <ToolCard key={tool.id} tool={tool} lang={lang} />
-            ))}
-          </div>
-        </section>
+        <SectionTransition delay={0.6}>
+          <section className="py-16">
+            <h2 className="text-3xl font-bold text-center mb-12 text-foreground font-jakarta">
+              {t('home_new_arrivals')}
+            </h2>
+            <ToolsGrid>
+              {latestToolsResponse.items.map((tool: ITool, index: number) => (
+                <GridItem key={tool.id} index={index}>
+                  <ToolCard tool={tool} lang={lang} />
+                </GridItem>
+              ))}
+            </ToolsGrid>
+          </section>
+        </SectionTransition>
       )}
     </div>
   );

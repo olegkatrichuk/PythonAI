@@ -65,7 +65,24 @@ async function getToolsForCategory(categoryId: number, searchParams: Awaited<Pag
         });
 
         if (!res.ok) {
-            throw new Error(`Failed to fetch tools: ${res.statusText}`);
+            // Handle rate limiting and other errors gracefully
+            if (res.status === 429) {
+                console.log(`[SERVER] Category tools rate limited`);
+                return { items: [], total: 0 };
+            }
+            
+            // Handle other client errors silently
+            if (res.status >= 400 && res.status < 500) {
+                console.log(`[SERVER] Category tools client error ${res.status}`);
+                return { items: [], total: 0 };
+            }
+            
+            // Only throw for server errors
+            if (res.status >= 500) {
+                throw new Error(`Server error: ${res.status}`);
+            }
+            
+            return { items: [], total: 0 };
         }
 
         return res.json();

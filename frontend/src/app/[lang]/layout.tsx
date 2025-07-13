@@ -13,6 +13,11 @@ import Footer from "@/components/Footer";
 import { Providers } from "@/app/providers";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import KeyboardShortcuts from "@/components/KeyboardShortcuts";
+import BackToTop from "@/components/BackToTop";
+import { PageTransition } from "@/components/PageTransition";
+import { InitialLoadWrapper, NavbarAnimation, FooterAnimation } from "@/components/SmoothAnimations";
+import { HydrationSafeWrapper } from "@/components/SmoothLoader";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
@@ -154,16 +159,29 @@ export default async function RootLayout({ children, params: paramsPromise }: Ro
           <AuthProvider>
             <Toaster position="bottom-right" toastOptions={{ style: { background: '#334155', color: '#f1f5f9' } }} />
 
-            {/* Navbar - клиентский компонент, ему lang не нужен */}
-            <Navbar />
+            <HydrationSafeWrapper>
+              <InitialLoadWrapper>
+                {/* Navbar - клиентский компонент, ему lang не нужен */}
+                <NavbarAnimation>
+                  <Navbar />
+                </NavbarAnimation>
 
-            <main className="container mx-auto px-4 py-8 min-h-screen">
-              <AnalyticsTracker />
-              {children}
-            </main>
+                <PageTransition>
+                  <main className="container mx-auto px-4 py-8 min-h-screen">
+                    <AnalyticsTracker />
+                    {children}
+                  </main>
+                </PageTransition>
+                
+                <KeyboardShortcuts />
+                <BackToTop showProgress={true} />
 
-            {/* Footer - серверный компонент, ему нужен lang */}
-            <Footer lang={params.lang} />
+                {/* Footer - серверный компонент, ему нужен lang */}
+                <FooterAnimation>
+                  <Footer lang={params.lang} />
+                </FooterAnimation>
+              </InitialLoadWrapper>
+            </HydrationSafeWrapper>
           </AuthProvider>
         </Providers>
       </body>

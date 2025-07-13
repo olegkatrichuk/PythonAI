@@ -585,7 +585,7 @@ def get_admin_stats(db: Session) -> dict:
         unique_visitors_today = db.query(distinct(models.PageView.ip_address)).filter(
             func.date(models.PageView.created_at) == today
         ).count()
-    except:
+    except Exception:
         unique_visitors_today = 0
     
     # Пока просто ставим 0, так как у User нет created_at
@@ -601,7 +601,7 @@ def get_admin_stats(db: Session) -> dict:
         ).limit(10).all()
         
         top_queries_list = [{"query": q.query, "count": q.count} for q in top_search_queries]
-    except:
+    except Exception:
         top_queries_list = []
     
     # Популярные инструменты (по просмотрам)
@@ -617,7 +617,7 @@ def get_admin_stats(db: Session) -> dict:
         ).order_by(
             desc(func.count(models.PageView.id))
         ).limit(10).all()
-    except:
+    except Exception:
         popular_tools = []
     
     popular_tools_list = []
@@ -633,7 +633,7 @@ def get_admin_stats(db: Session) -> dict:
     # Последние отзывы
     try:
         recent_reviews = get_reviews_recent(db, limit=5)
-    except:
+    except Exception:
         recent_reviews = []
     
     # Статистика по дням (последние 30 дней)
@@ -642,7 +642,7 @@ def get_admin_stats(db: Session) -> dict:
         daily_stats = db.query(models.DailyStats).filter(
             models.DailyStats.date >= thirty_days_ago
         ).order_by(desc(models.DailyStats.date)).limit(30).all()
-    except:
+    except Exception:
         daily_stats = []
     
     return {
@@ -776,3 +776,69 @@ def update_daily_stats(db: Session):
         db.add(daily_stat)
     
     db.commit()
+
+
+# --- ФУНКЦИИ ДЛЯ АВТОДОПОЛНЕНИЯ ---
+
+def search_tools_for_autocomplete(db: Session, query: str, limit: int = 5, lang: str = "ru"):
+    """Поиск инструментов для автодополнения."""
+    search_term = f"%{query.lower()}%"
+    
+    # Поиск в оригинальных названиях и переводах
+    tools = db.query(models.Tool).outerjoin(
+        models.ToolTranslation,
+        models.Tool.id == models.ToolTranslation.tool_id
+    ).filter(
+        or_(
+            func.lower(models.Tool.name).contains(search_term),
+            func.lower(models.ToolTranslation.name).contains(search_term)
+        )
+    ).order_by(
+        models.Tool.average_rating.desc(),
+        models.Tool.review_count.desc()
+    ).limit(limit).all()
+    
+    # Применяем переводы и сериализуем
+    result = []
+    for tool in tools:
+        serialized = serialize_tool(tool, lang)
+        if serialized:
+            result.append(serialized)
+    
+    return result
+
+
+def search_categories_for_autocomplete(db: Session, query: str, limit: int = 3, lang: str = "ru"):
+    """Поиск категорий для автодополнения."""
+    search_term = f"%{query.lower()}%"
+    
+    # Поиск в оригинальных названиях и переводах
+    categories = db.query(models.Category).outerjoin(
+        models.CategoryTranslation,
+        models.Category.id == models.CategoryTranslation.category_id
+    ).filter(
+        or_(
+            func.lower(models.Category.name).contains(search_term),
+            func.lower(models.CategoryTranslation.name).contains(search_term)
+        )
+    ).order_by(
+        models.Category.name
+    ).limit(limit).all()
+    
+    # Применяем переводы
+    result = []
+    for category in categories:
+        translation = next((t for t in category.translations if t.language_code == lang), None)
+        if not translation:
+            translation = next((t for t in category.translations if t.language_code == 'ru'), None)
+
+        if translation:
+            result.append({
+                "id": category.id,
+                "name": translation.name,
+                "slug": category.slug,
+                "description": getattr(translation, 'description', ''),
+                "icon": getattr(category, 'icon', '')
+            })
+    
+    return result

@@ -5,10 +5,10 @@ import { getTranslations } from '@/lib/translations';
 import type { ITool, ICategory } from '@/types';
 
 // Импортируем все необходимые компоненты
-import ToolList from '@/components/ToolList';
-import CategoryFilter from '@/components/CategoryFilter';
-import SearchBar from '@/components/SearchBar';
+import SimpleSearchBar from '@/components/SimpleSearchBar';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import RealTimeFilters from '@/components/RealTimeFilters';
+import { PageHeader, SearchAnimation, SidebarAnimation, MainContentAnimation } from '@/components/SmoothAnimations';
 
 
 // Определяем простой и понятный тип для пропсов
@@ -35,8 +35,22 @@ async function getTools(lang: string, searchParams: URLSearchParams): Promise<Ap
         });
 
         if (!res.ok) {
-            console.error(`Network error on server: ${res.status}`);
-            return { items: [], total: 0 };
+            // Handle rate limiting gracefully
+            if (res.status === 429) {
+                console.log(`[SERVER] Rate limited, returning empty results`);
+                return { items: [], total: 0 };
+            }
+            
+            // Handle other client errors silently
+            if (res.status >= 400 && res.status < 500) {
+                console.log(`[SERVER] Client error ${res.status}, returning empty results`);
+                return { items: [], total: 0 };
+            }
+            
+            // Only throw for server errors
+            if (res.status >= 500) {
+                throw new Error(`Server error: ${res.status}`);
+            }
         }
 
         const data = await res.json();
@@ -58,6 +72,10 @@ async function getCategories(lang: string): Promise<ICategory[]> {
             cache: 'no-store',
         });
         if (!res.ok) {
+            // Silently handle all errors for categories
+            if (res.status === 429) {
+                console.log(`[SERVER] Categories rate limited`);
+            }
             return [];
         }
         return res.json();
@@ -174,34 +192,26 @@ export default async function ToolsPage({ params: paramsPromise, searchParams: s
     return (
         <div>
             <Breadcrumbs lang={lang} />
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-center mb-4">
-                {t('tools_page_title')}
-            </h1>
+            
+            <PageHeader 
+                title={t('tools_page_title')}
+                subtitle={t('tools_page_intro_text')}
+                className="mb-12"
+            />
 
-            <p className="max-w-3xl mx-auto text-center text-slate-300 mb-12">
-                {t('tools_page_intro_text')}
-            </p>
+            <SearchAnimation className="mb-8">
+                <SimpleSearchBar />
+            </SearchAnimation>
 
-            <div className="mb-8 max-w-2xl mx-auto">
-                <SearchBar />
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-8">
-                <aside className="md:w-1/4 lg:w-1/5">
-                    <CategoryFilter categories={categories} />
-                </aside>
-
-                <div className="flex-grow">
-                    <ToolList
-                        basePath="/tool"
-                        tools={tools}
-                        total={total}
-                        page={page}
-                        limit={limit}
-                        lang={lang}
-                    />
-                </div>
-            </div>
+            <MainContentAnimation>
+                <RealTimeFilters
+                    initialTools={tools}
+                    initialTotal={total}
+                    categories={categories}
+                    initialPage={page}
+                    initialLimit={limit}
+                />
+            </MainContentAnimation>
         </div>
     );
 }

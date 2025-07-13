@@ -4,6 +4,7 @@ import secrets
 import string
 import sys
 from pathlib import Path
+import os
 
 # Добавляем корневую папку проекта в путь для корректного импорта
 # Убедитесь, что путь '..' действительно указывает на корень вашего проекта
@@ -13,8 +14,13 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from app.database import SessionLocal
 from app.schemas import UserCreate
 from app.crud import create_user, get_user_by_email
-from app.models import User  # Импортируем модель User для обновления
 from sqlalchemy.orm import Session
+
+# --- Определение учетных данных администратора ---
+# Получаем из переменных окружения или используем значения по умолчанию
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "securepassword123")
+
 
 # --- СПИСОК ПОЛЬЗОВАТЕЛЕЙ ДЛЯ СОЗДАНИЯ ---
 USERS_TO_CREATE = [

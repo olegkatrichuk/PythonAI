@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import type { ITool, ICategory } from '@/types';
 import ToolCard from '@/components/ToolCard';
 import PaginationControls from '@/components/PaginationControls';
+import { ToolCardGridSkeleton, PaginationSkeleton } from '@/components/SkeletonLoaders';
 
 interface PageTool extends ITool {
     category: ICategory;
@@ -21,9 +22,10 @@ interface ToolListProps {
     limit: number;
     lang: string;
     basePath: string;
+    isLoading?: boolean;
 }
 
-export default function ToolList({ tools, total, page, limit, lang }: ToolListProps) {
+export default function ToolList({ tools, total, page, limit, lang, isLoading = false }: ToolListProps) {
     const searchParams = useSearchParams();
     const t = getTranslations(lang);
 
@@ -41,6 +43,15 @@ export default function ToolList({ tools, total, page, limit, lang }: ToolListPr
 
     const prevPath = buildPageUrl(page - 1);
     const nextPath = buildPageUrl(page + 1);
+
+    if (isLoading) {
+        return (
+            <div>
+                <ToolCardGridSkeleton count={limit} />
+                <PaginationSkeleton />
+            </div>
+        );
+    }
 
     if (tools.length === 0) {
         return (
