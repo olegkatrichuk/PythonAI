@@ -5,6 +5,7 @@ import { createContext, useState, useEffect, useContext, ReactNode } from 'react
 import { jwtDecode } from 'jwt-decode';
 import { trackEvents, setCustomDimensions } from '@/lib/gtag';
 import { api } from '@/lib/api';
+import { errorHandler, handleApiError } from '@/lib/errorHandler';
 
 interface DecodedToken {
   sub: string;
@@ -43,70 +44,78 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchUserInfo = async () => {
-    const storedToken = localStorage.getItem('accessToken');
-    if (!storedToken) {
-      setLoading(false);
-      return;
-    }
-
     try {
-      console.log('Stored token:', storedToken?.substring(0, 20) + '...');
-      console.log('Fetching user info from API');
-      
+      // Теперь токен приходит из httpOnly cookie автоматически
       const response = await api.get('/api/users/me/');
 
-      console.log('Response status:', response.status);
-      console.log('Response data:', response.data);
-
       setUser(response.data);
-      setToken(storedToken);
+      setToken('authenticated'); // Просто флаг, что пользователь авторизован
       
       // Track user login success and set custom dimensions
       setCustomDimensions(response.data);
-    } catch (error) {
-      console.error('Error fetching user info:', error);
-      localStorage.removeItem('accessToken');
-      setToken(null);
-      setUser(null);
+    } catch (error: any) {
+      // Если 401 - это нормально, пользователь не авторизован
+      if (error.response?.status === 401) {
+        setToken(null);
+        setUser(null);
+      } else {
+        // Другие ошибки логируем
+        errorHandler.logError(error as Error);
+        setToken(null);
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // Временная поддержка старой логики для существующих пользователей
     const storedToken = localStorage.getItem('accessToken');
     if (storedToken) {
+      // Если есть токен в localStorage, используем его для входа
       try {
         const decoded: DecodedToken = jwtDecode(storedToken);
         if (decoded.exp * 1000 > Date.now()) {
-          setToken(storedToken);
-          fetchUserInfo();
+          // Токен еще действителен, используем его временно
+          migrateFromLocalStorage(storedToken);
+          return;
         } else {
           localStorage.removeItem('accessToken');
-          setLoading(false);
         }
       } catch (error) {
-        console.error("Invalid token:", error);
         localStorage.removeItem('accessToken');
-        setLoading(false);
       }
-    } else {
-      setLoading(false);
     }
+    
+    // Проверяем авторизацию через API call, токен в httpOnly cookie
+    fetchUserInfo();
   }, []);
 
   const login = (newToken: string) => {
-    try {
-      const decoded: DecodedToken = jwtDecode(newToken);
-      localStorage.setItem('accessToken', newToken);
-      setToken(newToken);
-      fetchUserInfo();
-    } catch (error) {
-      console.error("Failed to decode token on login:", error);
-    }
+    // Токен уже установлен в httpOnly cookie на backend
+    // Просто обновляем информацию о пользователе
+    setToken('authenticated');
+    fetchUserInfo();
   };
 
-  const logout = () => {
+  const migrateFromLocalStorage = async (oldToken: string) => {
+    // Пока просто используем старую логику с localStorage
+    // TODO: Позже можно будет удалить
+    setToken(oldToken);
+    fetchUserInfo();
+  };
+
+  const logout = async () => {
+    try {
+      // Вызываем API для удаления cookie
+      await api.post('/api/logout');
+    } catch (error) {
+      // Используем централизованный error handler
+      errorHandler.logError(error as Error);
+    }
+    
+    // Очищаем localStorage
     localStorage.removeItem('accessToken');
     setToken(null);
     setUser(null);

@@ -22,25 +22,64 @@ class UserCreate(UserBase):
     
     @validator('email', pre=True, always=True)
     def sanitize_email(cls, value):
+        import re
+        
         if not value:
             raise ValueError('Email is required')
+        
         # Удаляем пробелы и приводим к нижнему регистру
         cleaned_email = value.strip().lower()
-        # Базовая проверка формата email
-        if '@' not in cleaned_email or '.' not in cleaned_email.split('@')[1]:
+        
+        # Проверка длины
+        if len(cleaned_email) > 254:
+            raise ValueError('Email is too long')
+        if len(cleaned_email) < 3:
+            raise ValueError('Email is too short')
+        
+        # Строгая проверка формата email с помощью regex
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, cleaned_email):
             raise ValueError('Invalid email format')
+        
+        # Дополнительные проверки безопасности
+        if '..' in cleaned_email:
+            raise ValueError('Invalid email format: consecutive dots')
+        if cleaned_email.startswith('.') or cleaned_email.endswith('.'):
+            raise ValueError('Invalid email format: starts or ends with dot')
+        
         # Удаляем потенциально опасные символы
         cleaned_email = bleach.clean(cleaned_email, tags=[], strip=True)
         return cleaned_email
     
     @validator('password', pre=True, always=True) 
     def sanitize_password(cls, value):
+        import re
+        
         if not value:
             raise ValueError('Password is required')
+        
+        # Проверка длины
         if len(value) < 8:
             raise ValueError('Password must be at least 8 characters long')
-        # Удаляем HTML теги из пароля, но сохраняем спецсимволы
-        return bleach.clean(value, tags=[], strip=True)
+        if len(value) > 128:
+            raise ValueError('Password is too long')
+        
+        # Проверка сложности пароля
+        if not re.search(r'[a-z]', value):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not re.search(r'[A-Z]', value):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not re.search(r'\d', value):
+            raise ValueError('Password must contain at least one digit')
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', value):
+            raise ValueError('Password must contain at least one special character')
+        
+        # Проверка на распространенные пароли
+        common_passwords = ['password', '123456', 'qwerty', 'admin', 'letmein']
+        if value.lower() in common_passwords:
+            raise ValueError('Password is too common')
+        
+        return value
 
 
 class User(UserBase):

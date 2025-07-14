@@ -1,6 +1,6 @@
 # app/main.py
 
-from fastapi import FastAPI, Depends, HTTPException, Header, APIRouter, Request
+from fastapi import FastAPI, Depends, HTTPException, Header, APIRouter, Request, Response, Cookie
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -15,6 +15,7 @@ from . import crud, models, schemas, security
 from .database import get_db
 from .cache import cache
 from .config import settings
+from .logger import log_error, log_info, log_warning
 from .rate_limit import (
     limiter, rate_limit_handler, RateLimitHeadersMiddleware,
     apply_read_limit, apply_search_limit, apply_write_limit,
@@ -64,18 +65,45 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 app.add_middleware(RateLimitHeadersMiddleware)
 
+# Глобальный error handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Глобальный обработчик ошибок."""
+    log_error(f"Unhandled exception on {request.url}", error=exc)
+    
+    # Не показываем внутренние ошибки пользователю
+    return HTTPException(
+        status_code=500,
+        detail="Internal server error"
+    )
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def get_current_user(
+    request: Request,
+    db: Session = Depends(get_db),
+    token: Optional[str] = Depends(oauth2_scheme_optional)
+):
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
+    # Сначала пытаемся получить токен из cookie
+    auth_token = request.cookies.get("access_token")
+    
+    # Если нет в cookie, пытаемся получить из header (для совместимости)
+    if not auth_token and token:
+        auth_token = token
+    
+    if not auth_token:
+        raise credentials_exception
+    
     try:
-        payload = jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
+        payload = jwt.decode(auth_token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
         email: Optional[str] = payload.get("sub")
         if email is None:
             raise credentials_exception
@@ -110,27 +138,20 @@ def get_language_from_header(accept_language: Optional[str] = Header("ru")) -> s
 @router.post("/users/", response_model=schemas.User, tags=["users"])
 @apply_write_limit()
 def create_new_user(request: Request, user: schemas.UserCreate, db: Session = Depends(get_db)):
-    # --- БЛОК ДЛЯ ДИАГНОСТИКИ ОШИБКИ 500 ---
-    print(f"--- ПОПЫТКА РЕГИСТРАЦИИ ПОЛЬЗОВАТЕЛЯ: {user.email} ---")
     try:
         db_user = crud.get_user_by_email(db, email=user.email)
         if db_user:
             raise HTTPException(status_code=400, detail="Email already registered")
 
         created_user = crud.create_user(db=db, user=user)
-        print(f"--- ПОЛЬЗОВАТЕЛЬ {user.email} УСПЕШНО СОЗДАН ---")
         return created_user
 
     except HTTPException:
         # Перебрасываем HTTPException как есть (например, дублированный email)
         raise
     except Exception as e:
-        # Если произойдет ЛЮБАЯ ошибка, мы ее здесь поймаем и запишем в лог.
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        print("!!!!!!!!!! КРИТИЧЕСКАЯ ОШИБКА ПРИ РЕГИСТРАЦИИ !!!!!!!!!!")
-        print(f"!!!!!!!!!! ТИП ОШИБКИ: {type(e).__name__}, СООБЩЕНИЕ: {e} !!!!!!!!!!")
-        traceback.print_exc()  # Печатаем полный путь ошибки (traceback)
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        # Логируем ошибку для разработчиков
+        log_error(f"Error creating user {user.email}", error=e)
 
         # Проверяем на IntegrityError от базы данных  
         if "unique constraint" in str(e).lower() or "duplicate" in str(e).lower():
@@ -138,19 +159,41 @@ def create_new_user(request: Request, user: schemas.UserCreate, db: Session = De
         
         # Возвращаем стандартную ошибку 500
         raise HTTPException(status_code=500, detail="Internal server error during user creation.")
-    # --- КОНЕЦ БЛОКА ДИАГНОСТИКИ ---
 
 
 @router.post("/token", response_model=schemas.Token, tags=["users"])
 @apply_auth_limit()
-def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login_for_access_token(request: Request, response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = security.authenticate_user(db, email=form_data.username, password=form_data.password)
     if not user:
+        log_warning(f"Failed login attempt for email: {form_data.username}")
         raise HTTPException(status_code=401, detail="Incorrect username or password",
                             headers={"WWW-Authenticate": "Bearer"})
     access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
+    
+    # Устанавливаем httpOnly cookie для безопасности
+    # В development режиме не используем secure=True для HTTP
+    is_production = settings.ENVIRONMENT == "production"
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=is_production,  # Только для HTTPS в production
+        samesite="lax" if not is_production else "strict",  # Более гибкие настройки для development
+        max_age=security.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
+    
+    log_info(f"User {user.email} logged in successfully", user_id=user.id)
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/logout", tags=["users"])
+@apply_auth_limit()
+def logout(request: Request, response: Response):
+    """Logout пользователя путем удаления httpOnly cookie."""
+    response.delete_cookie(key="access_token")
+    return {"message": "Successfully logged out"}
 
 
 @router.get("/users/me/tools/", response_model=List[schemas.Tool], tags=["users"])
@@ -314,14 +357,21 @@ def update_daily_statistics(
 def track_page_view(
     request: Request,
     page_view: schemas.PageViewCreate,
-    db: Session = Depends(get_db),
-    token: Optional[str] = Depends(oauth2_scheme_optional)
+    db: Session = Depends(get_db)
 ):
     """Отслеживать просмотр страницы."""
     user_id = None
-    if token:
+    
+    # Пытаемся получить токен из cookie или header
+    auth_token = request.cookies.get("access_token")
+    if not auth_token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            auth_token = auth_header.split(" ")[1]
+    
+    if auth_token:
         try:
-            payload = jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
+            payload = jwt.decode(auth_token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
             email = payload.get("sub")
             if email:
                 user = crud.get_user_by_email(db, email=email)
@@ -338,14 +388,21 @@ def track_page_view(
 def track_search_query(
     request: Request,
     search_query: schemas.SearchQueryCreate,
-    db: Session = Depends(get_db),
-    token: Optional[str] = Depends(oauth2_scheme_optional)
+    db: Session = Depends(get_db)
 ):
     """Отслеживать поисковый запрос."""
     user_id = None
-    if token:
+    
+    # Пытаемся получить токен из cookie или header
+    auth_token = request.cookies.get("access_token")
+    if not auth_token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            auth_token = auth_header.split(" ")[1]
+    
+    if auth_token:
         try:
-            payload = jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
+            payload = jwt.decode(auth_token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
             email = payload.get("sub")
             if email:
                 user = crud.get_user_by_email(db, email=email)

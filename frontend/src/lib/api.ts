@@ -28,7 +28,7 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-// Interceptor для токенов
+// Request interceptor для добавления токена из localStorage (временно)
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
@@ -49,9 +49,21 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('accessToken');
+      // Очищаем localStorage при 401 ошибке
       if (typeof window !== 'undefined') {
-        window.location.href = '/ru/login';
+        localStorage.removeItem('accessToken');
+      }
+      
+      // Перенаправляем только если пользователь пытается получить доступ к защищенным ресурсам
+      const url = error.config?.url || '';
+      if (url.includes('/users/me/') || url.includes('/admin/')) {
+        // Это проверка авторизации, не перенаправляем
+        // Компонент сам решит, что делать
+      } else {
+        // Это попытка доступа к защищенному ресурсу, перенаправляем
+        if (typeof window !== 'undefined') {
+          window.location.href = '/ru/login';
+        }
       }
     }
     return Promise.reject(error);
