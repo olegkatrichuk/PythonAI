@@ -1,7 +1,7 @@
 // src/contexts/AuthContext.tsx
 'use client';
 
-import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { trackEvents, setCustomDimensions } from '@/lib/gtag';
 import { api } from '@/lib/api';
@@ -69,6 +69,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const migrateFromLocalStorage = useCallback(async (oldToken: string) => {
+    // Пока просто используем старую логику с localStorage
+    // TODO: Позже можно будет удалить
+    setToken(oldToken);
+    fetchUserInfo();
+  }, []);
+
   useEffect(() => {
     // Временная поддержка старой логики для существующих пользователей
     const storedToken = localStorage.getItem('accessToken');
@@ -90,19 +97,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     // Проверяем авторизацию через API call, токен в httpOnly cookie
     fetchUserInfo();
-  }, []);
+  }, [migrateFromLocalStorage]);
 
   const login = (newToken: string) => {
     // Токен уже установлен в httpOnly cookie на backend
     // Просто обновляем информацию о пользователе
     setToken('authenticated');
-    fetchUserInfo();
-  };
-
-  const migrateFromLocalStorage = async (oldToken: string) => {
-    // Пока просто используем старую логику с localStorage
-    // TODO: Позже можно будет удалить
-    setToken(oldToken);
     fetchUserInfo();
   };
 

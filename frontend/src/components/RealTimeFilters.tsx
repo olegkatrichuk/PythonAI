@@ -163,7 +163,7 @@ export default function RealTimeFilters({
         setIsLoading(false);
       }
     }
-  }, [lang, router, page, initialLimit]);
+  }, [lang, page, initialLimit, searchParams]);
 
   // Effect to apply filters when URL search params change (e.g., browser back/forward)
   useEffect(() => {
